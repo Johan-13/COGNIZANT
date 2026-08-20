@@ -1,90 +1,173 @@
 {% extends "base.html" %}
 
-{% block title %}Peak Load &amp; Shifting | Energy Optimizer{% endblock %}
+{% block title %}Peak Load &amp; Shifting Optimization | Energy Optimizer{% endblock %}
 
 {% block content %}
 <!-- Top Header Area -->
-<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
   <div>
-    <h1 class="font-display-md text-display-md text-[#FFF8D2]">Peak Load Analysis &amp; Load Shifting</h1>
-    <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1">Isolate diurnal high-demand windows to reschedule deferrable appliances to off-peak tariff periods.</p>
+    <h1 class="font-display-md text-display-md text-[#FFF8D2] flex items-center gap-2.5">
+      <span class="material-symbols-outlined text-primary text-3xl">electric_bolt</span>
+      Peak Load Analysis &amp; Load Shifting
+    </h1>
+    <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1 max-w-2xl">
+      Demand-side mathematical load shifting optimization to flatten peak demand, reduce Peak-to-Average Ratio (PAR), and lower energy costs.
+    </p>
+  </div>
+  <div class="flex items-center gap-3">
+    <div class="glass-card rounded-lg px-4 py-2 flex items-center gap-2 border border-primary/30 text-primary font-label-md text-label-md">
+      <span class="material-symbols-outlined text-sm">tune</span>
+      <span>Optimization Engine: Active</span>
+    </div>
   </div>
 </div>
 
-<!-- Peak Load KPI Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-6">
-  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[124px]">
-    <div class="flex justify-between items-start">
-      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Morning Peak Window</span>
-      <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-300">
-        <span class="material-symbols-outlined text-sm">wb_sunny</span>
-      </div>
-    </div>
-    <div class="font-headline-lg text-headline-lg mt-2 flex items-baseline gap-2">
-      <span id="kpi-morning-peak" class="text-yellow-300">07:00 – 10:00</span>
-    </div>
-  </div>
-
-  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[124px]">
+<!-- Peak Load KPI Cards (4 Cards) -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <!-- Card 1: Evening Peak Window -->
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Evening Peak Window</span>
-      <div class="w-8 h-8 rounded-full bg-error/20 flex items-center justify-center text-error">
+      <div class="w-8 h-8 rounded-full bg-error/20 flex items-center justify-center text-error border border-error/30">
         <span class="material-symbols-outlined text-sm">bolt</span>
       </div>
     </div>
-    <div class="font-headline-lg text-headline-lg mt-2 flex items-baseline gap-2">
-      <span id="kpi-evening-peak" class="text-error">18:00 – 22:00</span>
+    <div>
+      <div class="font-headline-lg text-headline-lg text-error font-bold" id="kpi-evening-peak">17:00 – 22:00</div>
+      <div class="font-label-sm text-label-sm opacity-60 text-xs" id="kpi-evening-val">Avg: -- kWh</div>
     </div>
   </div>
 
-  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[124px]">
+  <!-- Card 2: Peak-to-Average Ratio (PAR) -->
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
     <div class="flex justify-between items-start">
-      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Overnight Baseline</span>
-      <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">PAR Optimization</span>
+      <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+        <span class="material-symbols-outlined text-sm">balance</span>
+      </div>
+    </div>
+    <div>
+      <div class="font-headline-lg text-headline-lg text-primary font-bold flex items-baseline gap-1.5">
+        <span id="kpi-par-val">1.82x</span>
+        <span class="material-symbols-outlined text-sm text-secondary">arrow_forward</span>
+        <span id="kpi-par-opt" class="text-secondary">1.28x</span>
+      </div>
+      <div class="font-label-sm text-label-sm text-secondary text-xs" id="kpi-par-diff">-29.7% Grid Stress</div>
+    </div>
+  </div>
+
+  <!-- Card 3: Overnight Off-Peak Baseline -->
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+    <div class="flex justify-between items-start">
+      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Off-Peak Baseline</span>
+      <div class="w-8 h-8 rounded-full bg-[#E2FBCE]/20 flex items-center justify-center text-[#E2FBCE] border border-[#E2FBCE]/30">
         <span class="material-symbols-outlined text-sm">nightlight</span>
       </div>
     </div>
-    <div class="font-headline-lg text-headline-lg mt-2 flex items-baseline gap-2">
-      <span id="kpi-overnight-val" class="text-primary">1.04 kWh</span>
-      <span class="font-label-sm text-label-sm opacity-60">Avg</span>
+    <div>
+      <div class="font-headline-lg text-headline-lg text-[#E2FBCE] font-bold" id="kpi-overnight-val">-- kWh</div>
+      <div class="font-label-sm text-label-sm opacity-60 text-xs">00:00 – 05:00 valley load</div>
+    </div>
+  </div>
+
+  <!-- Card 4: Monthly Shifting Savings -->
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+    <div class="flex justify-between items-start">
+      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Potential Shift Savings</span>
+      <div class="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-secondary border border-secondary/30">
+        <span class="material-symbols-outlined text-sm">savings</span>
+      </div>
+    </div>
+    <div>
+      <div class="font-headline-lg text-headline-lg text-secondary font-bold" id="kpi-shift-savings">₹ -- / mo</div>
+      <div class="font-label-sm text-label-sm opacity-60 text-xs" id="kpi-shift-kwh">-- kWh shifted / month</div>
     </div>
   </div>
 </div>
 
-<!-- Diurnal Profile Chart Card -->
-<div class="glass-card rounded-xl p-6 h-[420px] flex flex-col relative overflow-hidden mb-6">
-  <div class="flex justify-between items-center mb-4">
-    <h3 class="font-headline-lg text-headline-lg">24-Hour Diurnal Demand Profile</h3>
-    <span class="font-label-sm text-label-sm text-on-surface-variant">Average hourly consumption across days</span>
+<!-- Main Load Shifting Comparison Chart Card -->
+<div class="glass-card rounded-xl p-6 h-[440px] flex flex-col relative overflow-hidden mb-6 border border-white/10">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+    <div>
+      <h3 class="font-headline-lg text-headline-lg text-[#FFF8D2] flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">ssid_chart</span>
+        Diurnal Load Shifting: Original vs. Optimized Demand Curve
+      </h3>
+      <p class="font-label-sm text-label-sm opacity-70">
+        Reduces evening peak demand and redistributes flexible load into off-peak overnight hours
+      </p>
+    </div>
+    <!-- Legend -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded-full bg-error border border-error/50"></span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant">Original Diurnal Load</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded-full bg-primary border border-primary/50"></span>
+        <span class="font-label-sm text-label-sm text-primary font-bold">Optimized Load Curve</span>
+      </div>
+    </div>
   </div>
+  <!-- Plotly Container -->
   <div class="relative w-full flex-grow">
-    <div id="chart-diurnal" style="width: 100%; height: 330px;"></div>
+    <div id="chart-diurnal" style="width: 100%; height: 340px;"></div>
   </div>
 </div>
 
-<!-- Top Peak Hours Table -->
-<div class="glass-card rounded-xl p-6 overflow-hidden flex flex-col">
-  <div class="flex justify-between items-center mb-4">
-    <h3 class="font-headline-lg text-headline-lg flex items-center gap-2">
-      <span class="material-symbols-outlined text-primary">schedule</span>
-      <span>Top Peak Hours &amp; Load Shifting Targets</span>
-    </h3>
+<!-- Bottom Row: Top Peak Hours & Appliance Dispatch Matrix -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Card 1: Top Peak Hours Table -->
+  <div class="glass-card rounded-xl p-6 overflow-hidden flex flex-col border border-white/10">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-headline-lg text-headline-lg flex items-center gap-2 text-[#FFF8D2]">
+        <span class="material-symbols-outlined text-error">warning</span>
+        <span>Top Peak Consumption Hours</span>
+      </h3>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Sorted by Mean Draw</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="border-b border-white/10">
+          <tr>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Hour Window</th>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Average Draw</th>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Peak Recorded</th>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Vs Daily Avg</th>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Action</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-peaks" class="font-body-md text-sm divide-y divide-white/5">
+          <tr><td colspan="5" class="py-6 text-center text-on-surface-variant opacity-60">Analyzing diurnal load patterns...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="overflow-x-auto">
-    <table class="w-full text-left border-collapse">
-      <thead>
-        <tr class="border-b border-white/10">
-          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Hour Window</th>
-          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Average Load</th>
-          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Peak Recorded</th>
-          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Vs Daily Avg</th>
-          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Shift Strategy</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-peaks" class="font-body-md text-sm">
-        <tr><td colspan="5" class="py-6 text-center text-on-surface-variant opacity-60">Analyzing diurnal load patterns...</td></tr>
-      </tbody>
-    </table>
+
+  <!-- Card 2: Appliance Rescheduling Matrix -->
+  <div class="glass-card rounded-xl p-6 overflow-hidden flex flex-col border border-white/10">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-headline-lg text-headline-lg flex items-center gap-2 text-[#FFF8D2]">
+        <span class="material-symbols-outlined text-secondary">schedule</span>
+        <span>Flexible Appliance Rescheduling Dispatch</span>
+      </h3>
+      <span class="font-label-sm text-label-sm text-secondary font-semibold">Demand Response</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="border-b border-white/10">
+          <tr>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Appliance / Load</th>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current Runtime</th>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Optimized Window</th>
+            <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Monthly Savings</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-appliances" class="font-body-md text-sm divide-y divide-white/5">
+          <tr><td colspan="4" class="py-6 text-center text-on-surface-variant opacity-60">Loading appliance schedules...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -97,51 +180,96 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(res => {
       if (res.status === 'success') {
         const d = res.data;
-        renderDiurnalChart(d.hourly_averages);
+        const hourly = d.hourly_averages || d.hourly_breakdown || [];
+        const opt = d.optimization_metrics || {};
+        const periods = d.period_averages || {};
+
+        // 1. Populate KPI Cards
+        if (periods.evening_peak_17_to_22_kWh) {
+          document.getElementById('kpi-evening-val').innerText = `Avg: ${periods.evening_peak_17_to_22_kWh} kWh`;
+        }
+        if (periods.overnight_baseline_0_to_5_kWh) {
+          document.getElementById('kpi-overnight-val').innerText = `${periods.overnight_baseline_0_to_5_kWh} kWh`;
+        }
+        if (opt.original_par && opt.optimized_par) {
+          document.getElementById('kpi-par-val').innerText = `${opt.original_par}x`;
+          document.getElementById('kpi-par-opt').innerText = `${opt.optimized_par}x`;
+          document.getElementById('kpi-par-diff').innerText = `-${opt.par_reduction_pct}% Grid Stress`;
+        }
+        if (opt.monthly_savings_inr !== undefined) {
+          document.getElementById('kpi-shift-savings').innerText = `₹${opt.monthly_savings_inr.toLocaleString('en-IN')}`;
+          document.getElementById('kpi-shift-kwh').innerText = `${opt.monthly_shiftable_kWh} kWh shifted / mo`;
+        }
+
+        // 2. Render Diurnal Before vs After Plot
+        renderDiurnalChart(hourly);
+
+        // 3. Render Top Peak Hours Table
         renderPeaksTable(d.top_peak_hours);
+
+        // 4. Render Appliance Schedules
+        renderApplianceTable(d.appliance_schedules);
       }
     })
     .catch(e => console.error('Peaks load error:', e));
 });
 
 function renderDiurnalChart(hourly) {
-  if (!hourly) return;
-  const hours = hourly.map(h => h.HourLabel);
-  const vals = hourly.map(h => h.Energy_kWh);
+  if (!hourly || hourly.length === 0) return;
+  const hours = hourly.map(h => h.HourLabel || `${String(h.Hour).padStart(2, '0')}:00`);
+  const origVals = hourly.map(h => h.Energy_kWh_mean !== undefined ? h.Energy_kWh_mean : h.Energy_kWh);
+  const optVals = hourly.map(h => h.Optimized_kWh !== undefined ? h.Optimized_kWh : h.Energy_kWh_mean);
 
-  const trace = {
+  // Original curve (Red/Orange line)
+  const traceOriginal = {
     x: hours,
-    y: vals,
+    y: origVals,
+    name: 'Original Demand',
     type: 'scatter',
     mode: 'lines+markers',
-    line: { color: '#9fee8e', width: 3, shape: 'spline' },
-    marker: { size: 6, color: '#9fee8e' },
+    line: { color: '#ffb4ab', width: 2.5, dash: 'dot', shape: 'spline' },
+    marker: { size: 5, color: '#ffb4ab' },
+    hoverinfo: 'x+y'
+  };
+
+  // Optimized curve (Vibrant Lime/Mint line with fill)
+  const traceOptimized = {
+    x: hours,
+    y: optVals,
+    name: 'Optimized (After Shift)',
+    type: 'scatter',
+    mode: 'lines+markers',
+    line: { color: '#E3EF26', width: 3.5, shape: 'spline' },
+    marker: { size: 6, color: '#E3EF26' },
     fill: 'tozeroy',
-    fillcolor: 'rgba(159, 238, 142, 0.15)'
+    fillcolor: 'rgba(227, 239, 38, 0.12)',
+    hoverinfo: 'x+y'
   };
 
   const layout = {
     autosize: true,
     paper_bgcolor: 'transparent',
     plot_bgcolor: 'transparent',
-    margin: { l: 40, r: 20, t: 10, b: 35 },
-    font: { color: '#c0c9b9', family: 'Sora, sans-serif', size: 12 },
+    margin: { l: 45, r: 20, t: 15, b: 35 },
+    font: { color: '#FFF8D2', family: 'Sora, sans-serif', size: 12 },
     xaxis: {
       gridcolor: 'rgba(255, 255, 255, 0.05)',
-      tickfont: { color: '#c0c9b9' },
+      tickfont: { color: '#FFF8D2', size: 11 },
       showline: true,
-      linecolor: 'rgba(255, 255, 255, 0.1)'
+      linecolor: 'rgba(255, 255, 255, 0.1)',
+      title: 'Hour of Day (24-Hour Cycle)'
     },
     yaxis: {
       gridcolor: 'rgba(255, 255, 255, 0.05)',
-      tickfont: { color: '#c0c9b9' },
+      tickfont: { color: '#FFF8D2', size: 11 },
       showline: true,
       linecolor: 'rgba(255, 255, 255, 0.1)',
-      title: 'Energy (kWh)'
-    }
+      title: 'Mean Power Load (kWh)'
+    },
+    showlegend: false
   };
 
-  Plotly.newPlot('chart-diurnal', [trace], layout, { responsive: true, displayModeBar: false });
+  Plotly.newPlot('chart-diurnal', [traceOriginal, traceOptimized], layout, { responsive: true, displayModeBar: false });
 }
 
 function renderPeaksTable(peaks) {
@@ -152,13 +280,43 @@ function renderPeaksTable(peaks) {
   }
 
   tbody.innerHTML = peaks.map(p => `
-    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-      <td class="py-3 px-4 font-label-md text-on-surface">${p.HourLabel}</td>
-      <td class="py-3 px-4 text-yellow-300 font-bold">${p.Energy_kWh_mean || p.mean} kWh</td>
-      <td class="py-3 px-4 text-error font-semibold">${p.Energy_kWh_max || p.max} kWh</td>
-      <td class="py-3 px-4 text-primary font-bold">+${p.pct_above_avg}%</td>
-      <td class="py-3 px-4">
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error/15 text-error border border-error/30">Defer to Off-Peak (00:00-06:00)</span>
+    <tr class="hover:bg-white/5 transition-colors">
+      <td class="py-3 px-3 font-label-md text-[#FFF8D2] font-semibold">${p.TimeRange || p.HourLabel}</td>
+      <td class="py-3 px-3 text-[#fbbf24] font-bold">${p.Energy_kWh_mean || p.mean} kWh</td>
+      <td class="py-3 px-3 text-error font-semibold">${p.Energy_kWh_max || p.max} kWh</td>
+      <td class="py-3 px-3 text-error font-bold">+${p.pct_above_avg}%</td>
+      <td class="py-3 px-3">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error/15 text-error border border-error/30">
+          Shift to Off-Peak
+        </span>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderApplianceTable(schedules) {
+  const tbody = document.getElementById('tbody-appliances');
+  if (!schedules || schedules.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-on-surface-variant opacity-60">No appliance schedule data available.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = schedules.map(s => `
+    <tr class="hover:bg-white/5 transition-colors">
+      <td class="py-3 px-3">
+        <div class="font-label-md text-[#FFF8D2] font-semibold">${s.appliance}</div>
+        <div class="font-label-sm text-xs opacity-60">Rating: ${s.power_rating} (${s.daily_kwh} kWh/day)</div>
+      </td>
+      <td class="py-3 px-3 text-error font-medium text-xs">
+        <span class="material-symbols-outlined text-xs align-middle mr-1">schedule</span>
+        ${s.current_window}
+      </td>
+      <td class="py-3 px-3 text-primary font-bold text-xs">
+        <span class="material-symbols-outlined text-xs align-middle mr-1 text-primary">check_circle</span>
+        ${s.optimal_window}
+      </td>
+      <td class="py-3 px-3 text-secondary font-bold text-sm">
+        +₹${s.monthly_savings_inr.toLocaleString('en-IN')}
       </td>
     </tr>
   `).join('');
