@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Anomaly Detection | Smart Energy Consumption Optimizer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title"><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>Abnormal Usage & Spike Detection</h1>
+    <p class="page-subtitle mb-0">Statistical Z-Score detection for high-consumption periods and appliance leaks</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <label class="text-muted small">Z-Score Threshold:</label>
+    <select class="form-select form-select-sm bg-dark text-light border-secondary" id="z-threshold-select" onchange="loadAnomalies()">
+      <option value="2.0">Z >= 2.0 (Sensitive)</option>
+      <option value="2.5" selected>Z >= 2.5 (Balanced Standard)</option>
+      <option value="3.0">Z >= 3.0 (Severe Only)</option>
+    </select>
+  </div>
+</div>
+
+<!-- Anomaly Summary Metric Badges -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-glass metric-card">
+      <div class="metric-icon red"><i class="fa-solid fa-bell"></i></div>
+      <div>
+        <div class="metric-label">Total Anomalies</div>
+        <div class="metric-val" id="anom-total">--</div>
+        <div class="small text-muted">Flagged Events</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-glass metric-card">
+      <div class="metric-icon red"><i class="fa-solid fa-radiation"></i></div>
+      <div>
+        <div class="metric-label">Critical Spikes</div>
+        <div class="metric-val" id="anom-critical">--</div>
+        <div class="small text-muted">Z >= 3.5</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-glass metric-card">
+      <div class="metric-icon orange"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <div class="metric-label">High Severity</div>
+        <div class="metric-val" id="anom-high">--</div>
+        <div class="small text-muted">3.0 <= Z < 3.5</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-glass metric-card">
+      <div class="metric-icon purple"><i class="fa-solid fa-gauge-high"></i></div>
+      <div>
+        <div class="metric-label">Peak Z-Score</div>
+        <div class="metric-val" id="anom-max-z">--</div>
+        <div class="small text-muted">Max Deviation</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Anomaly Time Series Chart -->
+<div class="card-glass mb-4">
+  <h5 class="mb-3"><i class="fa-solid fa-chart-line text-danger me-2"></i>Rolling Baseline vs Detected Consumption Anomalies</h5>
+  <div style="position: relative; height: 320px;">
+    <canvas id="anomalyChart"></canvas>
+  </div>
+</div>
+
+<!-- Anomaly Detailed Table Log -->
+<div class="card-glass">
+  <h5 class="mb-3"><i class="fa-solid fa-table text-warning me-2"></i>Flagged Anomaly Logs & Root Cause Diagnosis</h5>
+  <div class="table-responsive" style="max-height: 400px;">
+    <table class="table table-dark-custom align-middle">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Actual Load</th>
+          <th>Expected Baseline</th>
+          <th>Z-Score</th>
+          <th>Severity</th>
+          <th>Context & Possible Reason</th>
+        </tr>
+      </thead>
+      <tbody id="anomalies-table-body">
+        <tr><td colspan="6" class="text-center text-muted">Scanning dataset for anomalies...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/anomalies.js') }}"></script>
+{% endblock %}

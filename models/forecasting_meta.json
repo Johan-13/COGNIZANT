@@ -1,0 +1,21 @@
+{
+  "trained_at": "2026-08-20 02:08:12",
+  "data_points_trained": 240,
+  "model_used": "SARIMA (1,1,1)x(1,0,1)_7 + Ridge",
+  "sarima_fitted": true,
+  "metrics": {
+    "MAE": 18.1109,
+    "RMSE": 24.9984,
+    "MAPE": 1136.09
+  },
+  "baseline_metrics": {
+    "MAE": 0.6236,
+    "RMSE": 1.2385,
+    "MAPE": 37.31
+  },
+  "ml_metrics": {
+    "MAE": 0.548,
+    "RMSE": 0.6974,
+    "MAPE": 39.3
+  }
+}

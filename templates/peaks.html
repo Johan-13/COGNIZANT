@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Peak Usage Analysis | Smart Energy Consumption Optimizer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title"><i class="fa-solid fa-fire text-warning me-2"></i>Peak Usage Hours & Load Distribution</h1>
+    <p class="page-subtitle mb-0">Identify peak electricity windows, top consumption hours, and baseline deltas</p>
+  </div>
+</div>
+
+<!-- Peak Window Cards Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card-glass metric-card">
+      <div class="metric-icon orange"><i class="fa-solid fa-cloud-sun"></i></div>
+      <div>
+        <div class="metric-label">Morning Peak (07-10)</div>
+        <div class="metric-val" id="peak-morning">--</div>
+        <div class="small text-muted">kWh Avg / Hour</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card-glass metric-card">
+      <div class="metric-icon red"><i class="fa-solid fa-moon"></i></div>
+      <div>
+        <div class="metric-label">Evening Peak (17-22)</div>
+        <div class="metric-val" id="peak-evening">--</div>
+        <div class="small text-muted">kWh Avg / Hour</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card-glass metric-card">
+      <div class="metric-icon blue"><i class="fa-solid fa-bed"></i></div>
+      <div>
+        <div class="metric-label">Overnight Base (00-05)</div>
+        <div class="metric-val" id="peak-overnight">--</div>
+        <div class="small text-muted">kWh Avg / Hour</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Peak Distribution Chart -->
+<div class="card-glass mb-4">
+  <h5 class="mb-3"><i class="fa-solid fa-chart-column text-cyan me-2"></i>24-Hour Load Distribution vs Household Baseline Average</h5>
+  <div style="position: relative; height: 320px;">
+    <canvas id="peaksChart"></canvas>
+  </div>
+</div>
+
+<!-- Top 10 Peak Hours Table -->
+<div class="card-glass">
+  <h5 class="mb-3"><i class="fa-solid fa-ranking-star text-warning me-2"></i>Top 10 Peak Consumption Hours</h5>
+  <div class="table-responsive">
+    <table class="table table-dark-custom align-middle">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Hour Window</th>
+          <th>Average Consumption</th>
+          <th>Historical Max Peak</th>
+          <th>Delta vs Household Avg</th>
+          <th>Peak Level</th>
+        </tr>
+      </thead>
+      <tbody id="peaks-table-body">
+        <tr><td colspan="6" class="text-center text-muted">Analyzing peak usage...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('/api/peaks')
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success') {
+        const data = res.data;
+        document.getElementById('peak-morning').innerText = `${data.period_averages.morning_peak_7_to_10_kWh} kWh`;
+        document.getElementById('peak-evening').innerText = `${data.period_averages.evening_peak_17_to_22_kWh} kWh`;
+        document.getElementById('peak-overnight').innerText = `${data.period_averages.overnight_baseline_0_to_5_kWh} kWh`;
+        
+        renderPeaksChart(data.hourly_breakdown, data.overall_avg_kWh);
+        renderPeaksTable(data.top_peak_hours);
+      }
+    });
+});
+
+function renderPeaksChart(hourlyBreakdown, overallAvg) {
+  const hours = hourlyBreakdown.map(h => `${h.Hour}:00`);
+  const means = hourlyBreakdown.map(h => h.mean);
+  const baseline = Array(hours.length).fill(overallAvg);
+
+  const ctx = document.getElementById('peaksChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: hours,
+      datasets: [
+        {
+          label: 'Hourly Average Load (kWh)',
+          data: means,
+          backgroundColor: means.map(v => v > overallAvg * 1.2 ? '#f59e0b' : '#3b82f6'),
+          borderRadius: 4
+        },
+        {
+          label: 'Overall Average Baseline',
+          data: baseline,
+          type: 'line',
+          borderColor: '#ef4444',
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#f8fafc' } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+      }
+    }
+  });
+}
+
+function renderPeaksTable(topPeaks) {
+  const tbody = document.getElementById('peaks-table-body');
+  tbody.innerHTML = '';
+
+  topPeaks.forEach((item, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="fw-bold text-cyan">#${idx + 1}</td>
+      <td class="fw-bold">${item.HourLabel}</td>
+      <td class="text-warning fw-bold">${item.mean} kWh</td>
+      <td class="text-muted">${item.max} kWh</td>
+      <td class="text-danger fw-bold">+${item.pct_above_avg}%</td>
+      <td><span class="badge ${idx < 3 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning'}">${idx < 3 ? 'Critical Peak' : 'High Peak'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+</script>
+{% endblock %}

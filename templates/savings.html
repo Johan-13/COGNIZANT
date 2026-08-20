@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Cost & Savings Calculator | Smart Energy Consumption Optimizer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title"><i class="fa-solid fa-calculator text-success me-2"></i>Cost & Savings Calculator</h1>
+    <p class="page-subtitle mb-0">Custom electricity tariff scenario planner and financial projection engine</p>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Interactive Form Card -->
+  <div class="col-lg-4">
+    <div class="card-glass h-100">
+      <h5 class="mb-3"><i class="fa-solid fa-sliders text-cyan me-2"></i>Tariff & Usage Inputs</h5>
+      
+      <div class="mb-3">
+        <label for="input-tariff" class="form-label text-muted small">Electricity Tariff Rate ($ per kWh):</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark text-muted border-secondary">$</span>
+          <input type="number" step="0.01" min="0.01" class="form-control bg-dark text-light border-secondary" id="input-tariff" value="0.15">
+          <span class="input-group-text bg-dark text-muted border-secondary">/ kWh</span>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="input-monthly-kwh" class="form-label text-muted small">Monthly Energy Usage (kWh):</label>
+        <div class="input-group">
+          <input type="number" step="10" min="50" class="form-control bg-dark text-light border-secondary" id="input-monthly-kwh" placeholder="Auto-calculated from dataset">
+          <span class="input-group-text bg-dark text-muted border-secondary">kWh</span>
+        </div>
+        <div class="form-text text-muted">Leave empty to use historical average from dataset.</div>
+      </div>
+
+      <button class="btn btn-cyan w-100 py-2" onclick="calculateSavings()"><i class="fa-solid fa-calculator me-1"></i> Calculate Cost Scenarios</button>
+    </div>
+  </div>
+
+  <!-- Summary Projection Cards -->
+  <div class="col-lg-8">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card-glass metric-card">
+          <div class="metric-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+          <div>
+            <div class="metric-label">Estimated Monthly Bill</div>
+            <div class="metric-val text-purple" id="calc-monthly-cost">--</div>
+            <div class="small text-muted" id="calc-monthly-sub">Current Usage</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card-glass metric-card">
+          <div class="metric-icon blue"><i class="fa-solid fa-calendar"></i></div>
+          <div>
+            <div class="metric-label">Estimated Annual Cost</div>
+            <div class="metric-val text-info" id="calc-yearly-cost">--</div>
+            <div class="small text-muted">12 Months Projection</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenarios Chart -->
+      <div class="col-12">
+        <div class="card-glass mb-0">
+          <h6 class="text-muted uppercase small mb-2"><i class="fa-solid fa-chart-bar text-success me-2"></i>Monthly Bill Reduction Across Savings Scenarios</h6>
+          <div style="position: relative; height: 180px;">
+            <canvas id="savingsChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Scenarios Breakdown Table -->
+<div class="card-glass">
+  <h5 class="mb-3"><i class="fa-solid fa-table-list text-warning me-2"></i>Potential Financial Savings Breakdown</h5>
+  <div class="table-responsive">
+    <table class="table table-dark-custom align-middle">
+      <thead>
+        <tr>
+          <th>Reduction Target</th>
+          <th>Monthly kWh Saved</th>
+          <th>Yearly kWh Saved</th>
+          <th>Monthly Bill Savings ($)</th>
+          <th>Yearly Bill Savings ($)</th>
+          <th>New Projected Monthly Bill</th>
+        </tr>
+      </thead>
+      <tbody id="savings-table-body">
+        <tr><td colspan="6" class="text-center text-muted">Calculating tariff scenarios...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/savings.js') }}"></script>
+{% endblock %}
