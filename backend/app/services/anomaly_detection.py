@@ -73,6 +73,9 @@ def detect_anomalies(df, window=24, z_threshold=2.0):
     anomalies['Occupancy_Level'] = anomalies.get('Occupancy_Level', 'Medium')
     anomalies['Occupancy_Ratio'] = anomalies.get('Occupancy_Ratio', 0.5).round(2)
 
+    # Sort descending so newest detected anomalies appear first
+    anomalies = anomalies.sort_values(by=dt_col, ascending=False)
+
     result_cols = ['Timestamp', 'Actual_kWh', 'Expected_kWh', 'Z_Score', 'Severity', 'Temperature_C', 'Occupancy_Level', 'Occupancy_Ratio', 'Possible_Reason']
     
     summary = {
