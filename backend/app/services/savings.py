@@ -58,8 +58,7 @@ SLAB_TARIFF_STRUCTURE = [
     {'min': 50, 'max': 100, 'rate': 4.25, 'label': '51 – 100 units (₹4.25/kWh)'},
     {'min': 100, 'max': 150, 'rate': 5.35, 'label': '101 – 150 units (₹5.35/kWh)'},
     {'min': 150, 'max': 200, 'rate': 7.20, 'label': '151 – 200 units (₹7.20/kWh)'},
-    {'min': 200, 'max': 250, 'rate': 8.50, 'label': '201 – 250 units (₹8.50/kWh)'},
-    {'min': 250, 'max': 999999999, 'rate': 8.50, 'label': '> 250 units (₹8.50/kWh)'}
+    {'min': 200, 'max': 999999999, 'rate': 8.50, 'label': '> 200 units (₹8.50/kWh)'}
 ]
 
 
