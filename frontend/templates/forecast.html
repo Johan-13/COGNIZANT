@@ -1,182 +1,177 @@
 {% extends "base.html" %}
 
-{% block title %}Hourly Predictions Stream | Prophet Forecasting{% endblock %}
+{% block title %}Prophet Forecast | Energy Optimizer{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<!-- Top Overview Area -->
+<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
   <div>
-    <h1 class="page-title"><i class="fa-solid fa-list-check text-green me-2"></i>Hourly Predictions Stream</h1>
-    <p class="page-subtitle mb-0">Multi-step Prophet forecasts, 95% confidence intervals, and telemetry regressors</p>
+    <h1 class="font-display-md text-display-md text-[#FFF8D2]">Facebook Prophet Forecasting</h1>
+    <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1 max-w-2xl">Multi-step additive seasonality forecasting with weather &amp; occupancy regressors.</p>
   </div>
-  <div class="d-flex gap-2 align-items-center">
-    <div class="input-group input-group-sm">
-      <span class="input-group-text bg-dark text-cyan border-secondary"><i class="fa-solid fa-clock me-1"></i> Horizon</span>
-      <select id="select-horizon" class="form-select bg-dark text-light border-secondary">
-        <option value="24" selected>Next 24 Hours</option>
-        <option value="48">Next 48 Hours</option>
-        <option value="72">Next 72 Hours</option>
-        <option value="168">Next 7 Days (168h)</option>
+  <div class="flex items-center gap-3">
+    <div class="glass-card rounded-lg px-4 py-2 flex items-center gap-2 cursor-pointer hover:border-white/30 transition-colors">
+      <span class="material-symbols-outlined text-on-surface-variant text-sm">calendar_month</span>
+      <select id="select-horizon" class="bg-transparent border-0 text-[#FFF8D2] font-label-md text-label-md focus:ring-0 cursor-pointer p-0 pr-2 outline-none">
+        <option value="24" class="bg-[#001525] text-[#FFF8D2]" selected>Next 24 Hours</option>
+        <option value="48" class="bg-[#001525] text-[#FFF8D2]">Next 48 Hours</option>
+        <option value="72" class="bg-[#001525] text-[#FFF8D2]">Next 72 Hours</option>
+        <option value="168" class="bg-[#001525] text-[#FFF8D2]">Next 7 Days (168h)</option>
       </select>
     </div>
-    <button id="btn-export-csv" class="btn btn-outline-info btn-sm rounded-pill px-3 text-nowrap">
-      <i class="fa-solid fa-file-arrow-down me-1"></i> Export CSV
-    </button>
-    <button id="btn-retrain" class="btn btn-cyan btn-sm rounded-pill px-3 text-nowrap">
-      <i class="fa-solid fa-brain me-1"></i> Retrain Model
+    <button id="btn-retrain" class="bg-primary text-on-primary font-label-md text-label-md px-6 py-2.5 rounded-lg font-bold hover:bg-primary-container transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(159,238,142,0.2)]">
+      <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">model_training</span>
+      <span id="btn-retrain-text">Retrain Prophet Model</span>
     </button>
   </div>
 </div>
 
-<!-- Model Evaluation Banner -->
-<div class="card-glass mb-4 p-3">
-  <div class="row text-center align-items-center g-3">
-    <div class="col-6 col-md-3 border-end border-secondary-subtle">
-      <div class="text-muted small">Target Forecaster</div>
-      <div class="fw-bold fs-6 text-light" id="info-model-type">Facebook Prophet</div>
-      <div class="text-cyan style-xs">Additive + Regressors</div>
+<!-- Performance Summary Card -->
+<div class="glass-card rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+  <div class="flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+      <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
     </div>
-    <div class="col-6 col-md-3 border-end border-secondary-subtle">
-      <div class="text-muted small">Prophet Model MAPE</div>
-      <div class="fw-bold fs-4 text-success" id="info-prophet-mape">--%</div>
-      <div class="text-muted style-xs" id="info-prophet-rmse">RMSE: --</div>
-    </div>
-    <div class="col-6 col-md-3 border-end border-secondary-subtle">
-      <div class="text-muted small">Naive Baseline MAPE</div>
-      <div class="fw-bold fs-4 text-danger" id="info-baseline-mape">--%</div>
-      <div class="text-muted style-xs" id="info-baseline-rmse">RMSE: --</div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="text-muted small">Accuracy Improvement</div>
-      <div class="fw-bold fs-4 text-cyan" id="info-mape-improvement">--%</div>
-      <span class="badge bg-success-subtle text-success border border-success-subtle mt-1 small">Outperforms Baseline</span>
-    </div>
-  </div>
-</div>
-
-<!-- Forecast Horizon Key Metrics & Aggregations -->
-<div class="mb-4">
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h5 class="mb-0 text-light"><i class="fa-solid fa-gauge-high text-cyan me-2"></i>Forecast Horizon Key Metrics & Summary</h5>
-    <span class="text-muted small">Aggregated statistics calculated across the selected horizon window</span>
-  </div>
-  <div class="row g-3">
-    <div class="col-6 col-md-3">
-      <div class="card-glass p-3 mb-0">
-        <div class="d-flex align-items-center gap-3">
-          <div class="metric-icon purple"><i class="fa-solid fa-bolt"></i></div>
-          <div>
-            <div class="fw-semibold text-light" style="font-size: 0.85rem;">Total Horizon Demand</div>
-            <div class="fs-5 fw-bold text-purple" id="stat-total-kwh">-- kWh</div>
-            <div class="text-muted" style="font-size: 0.72rem;">Cumulative energy in window</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card-glass p-3 mb-0">
-        <div class="d-flex align-items-center gap-3">
-          <div class="metric-icon cyan"><i class="fa-solid fa-chart-line"></i></div>
-          <div>
-            <div class="fw-semibold text-light" style="font-size: 0.85rem;">Average Hourly Rate</div>
-            <div class="fs-5 fw-bold text-cyan" id="stat-avg-kwh">-- kWh/h</div>
-            <div class="text-muted" style="font-size: 0.72rem;">Mean expected hourly load</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card-glass p-3 mb-0">
-        <div class="d-flex align-items-center gap-3">
-          <div class="metric-icon orange"><i class="fa-solid fa-arrow-trend-up"></i></div>
-          <div>
-            <div class="fw-semibold text-light" style="font-size: 0.85rem;">Peak Forecast Demand</div>
-            <div class="fs-5 fw-bold text-warning" id="stat-peak-kwh">-- kWh</div>
-            <div class="text-muted" style="font-size: 0.72rem;">Highest predicted hourly spike</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card-glass p-3 mb-0">
-        <div class="d-flex align-items-center gap-3">
-          <div class="metric-icon green"><i class="fa-solid fa-arrow-trend-down"></i></div>
-          <div>
-            <div class="fw-semibold text-light" style="font-size: 0.85rem;">Min Off-Peak Demand</div>
-            <div class="fs-5 fw-bold text-success" id="stat-min-kwh">-- kWh</div>
-            <div class="text-muted" style="font-size: 0.72rem;">Lowest overnight baseline</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Main Centerpiece: Hourly Predictions Stream Table -->
-<div class="card-glass mb-4">
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
-      <h5 class="mb-0 text-light"><i class="fa-solid fa-stream text-green me-2"></i>Active Hourly Predictions Stream</h5>
-      <span class="text-muted small">Point forecasts with 95% Confidence Bounds (yhat_lower, yhat_upper) & Exogenous Features</span>
+      <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Model Performance</h3>
+      <div class="flex items-baseline gap-2">
+        <span class="font-headline-lg text-headline-lg text-primary" id="info-confidence">High Confidence</span>
+        <span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 ml-2" id="info-baseline-status">Outperforms Naive Baseline</span>
+      </div>
     </div>
-    <div class="d-flex gap-2">
-      <input type="text" id="input-filter-stream" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Search hour / date..." style="width: 200px;">
+  </div>
+  <div class="flex gap-8">
+    <div class="text-right border-r border-white/10 pr-8">
+      <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">MAPE (Mean Absolute Percentage Error)</p>
+      <p class="font-headline-lg text-headline-lg text-primary" id="info-prophet-mape">2.4%</p>
+    </div>
+    <div class="text-right">
+      <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">VS NAIVE FORECAST</p>
+      <p class="font-headline-lg text-headline-lg text-primary flex items-center justify-end gap-1">
+        <span id="info-mape-diff">+12.8%</span>
+        <span class="material-symbols-outlined text-sm align-middle">trending_up</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Main Forecast Chart Card -->
+<div class="glass-card rounded-xl p-6 h-[440px] flex flex-col relative overflow-hidden mb-6">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="font-headline-lg text-headline-lg">Prophet Predicted Energy Demand &amp; 95% Confidence Bounds</h3>
+    <div class="flex gap-4">
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-outline"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Actual</span></div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-primary"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Forecast</span></div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm bg-primary/20"></span><span class="font-label-sm text-label-sm text-on-surface-variant">95% CI</span></div>
+    </div>
+  </div>
+  <!-- Interactive Forecast Plot -->
+  <div class="relative w-full flex-grow">
+    <div id="chart-forecast" style="width: 100%; height: 350px;"></div>
+  </div>
+</div>
+
+<!-- Bottom Grid: Components & Table -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Prophet Seasonality Components -->
+  <div class="glass-card rounded-xl p-6 lg:col-span-1 flex flex-col">
+    <h3 class="font-headline-lg text-headline-lg mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">bar_chart</span>
+      <span>Seasonality Components</span>
+    </h3>
+    <div class="space-y-6 flex-grow">
+      <!-- Daily -->
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="font-label-md text-label-md text-on-surface-variant">Daily Seasonality</span>
+          <span class="font-label-sm text-label-sm text-secondary">High Impact</span>
+        </div>
+        <div class="h-20 bg-surface-container/40 rounded-lg border border-white/5 relative overflow-hidden p-2 flex items-center">
+          <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <path d="M0,80 Q25,20 50,80 T100,80" fill="none" stroke="#b8cdae" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+          </svg>
+        </div>
+      </div>
+      <!-- Weekly -->
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="font-label-md text-label-md text-on-surface-variant">Weekly Seasonality</span>
+          <span class="font-label-sm text-label-sm text-secondary">Medium Impact</span>
+        </div>
+        <div class="h-20 bg-surface-container/40 rounded-lg border border-white/5 relative overflow-hidden p-2 flex items-center">
+          <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <path d="M0,50 L14,40 L28,45 L42,30 L56,50 L70,80 L85,85 L100,50" fill="none" stroke="#b8cdae" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+          </svg>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="table-responsive" style="max-height: 560px; overflow-y: auto;">
-    <table class="table table-dark-custom table-hover align-middle">
-      <thead style="position: sticky; top: 0; background: #0f172a; z-index: 2;">
-        <tr>
-          <th>#</th>
-          <th>Forecast Timestamp</th>
-          <th>Prophet Forecast</th>
-          <th>95% Confidence Bounds</th>
-          <th>Uncertainty Range</th>
-          <th>Temperature</th>
-          <th>Occupancy Level</th>
-          <th>Daily Seasonality</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-forecast">
-        <tr><td colspan="8" class="text-center text-muted py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>Loading Prophet Hourly Stream...</td></tr>
-      </tbody>
-    </table>
+  <!-- Hourly Predictions Stream Table -->
+  <div class="glass-card rounded-xl p-6 lg:col-span-2 overflow-hidden flex flex-col">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-headline-lg text-headline-lg flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">table_rows</span>
+        <span>Hourly Predictions Stream</span>
+      </h3>
+      <button id="btn-export-csv" class="text-primary font-label-md text-label-md hover:underline flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">download</span>
+        <span>Export CSV</span>
+      </button>
+    </div>
+    <div class="overflow-x-auto max-h-[320px]">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-white/10">
+            <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Timestamp</th>
+            <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Forecast (kWh)</th>
+            <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">95% Lower</th>
+            <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">95% Upper</th>
+            <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Reg: Temp</th>
+            <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Reg: Occ</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-forecast" class="font-body-md text-sm">
+          <tr><td colspan="6" class="py-8 text-center text-on-surface-variant opacity-60">Loading Prophet Predictions Stream...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-let currentPredictions = [];
+let currentForecastData = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-  loadForecastData(24);
+document.addEventListener('DOMContentLoaded', () => {
+  const horizonSelect = document.getElementById('select-horizon');
+  loadForecastData(horizonSelect.value);
 
-  document.getElementById('select-horizon').addEventListener('change', function() {
-    loadForecastData(this.value);
+  horizonSelect.addEventListener('change', () => {
+    loadForecastData(horizonSelect.value);
   });
 
-  document.getElementById('input-filter-stream').addEventListener('input', function() {
-    renderTable(this.value);
-  });
-
-  document.getElementById('btn-export-csv').addEventListener('click', function() {
+  document.getElementById('btn-export-csv')?.addEventListener('click', () => {
     exportToCsv();
   });
 
-  document.getElementById('btn-retrain').addEventListener('click', function() {
-    this.disabled = true;
-    this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Fitting Prophet...';
-    
+  document.getElementById('btn-retrain')?.addEventListener('click', () => {
+    const btn = document.getElementById('btn-retrain');
+    const txt = document.getElementById('btn-retrain-text');
+    btn.disabled = true;
+    txt.innerText = 'Fitting Prophet Model...';
+
     fetch('/api/retrain', { method: 'POST' })
       .then(r => r.json())
       .then(res => {
-        alert('Prophet model retrained successfully!');
-        loadForecastData(document.getElementById('select-horizon').value);
+        alert('Prophet model retrained successfully with latest telemetry!');
+        loadForecastData(horizonSelect.value);
       })
+      .catch(e => alert('Error retraining model: ' + e))
       .finally(() => {
-        this.disabled = false;
-        this.innerHTML = '<i class="fa-solid fa-brain me-1"></i> Retrain Model';
+        btn.disabled = false;
+        txt.innerText = 'Retrain Prophet Model';
       });
   });
 });
@@ -186,112 +181,174 @@ function loadForecastData(horizon) {
     .then(r => r.json())
     .then(res => {
       if (res.status === 'success') {
+        currentForecastData = res.data;
         const d = res.data;
-        currentPredictions = d.predictions || [];
         const meta = d.metadata || {};
+        const actuals = d.historical_test_actuals || [];
+        const preds = d.predictions || [];
 
-        document.getElementById('info-model-type').innerText = meta.model_type || 'Facebook Prophet';
-        document.getElementById('info-prophet-mape').innerText = (meta.prophet_metrics ? meta.prophet_metrics.MAPE : '--') + '%';
-        document.getElementById('info-prophet-rmse').innerText = 'RMSE: ' + (meta.prophet_metrics ? meta.prophet_metrics.RMSE : '--');
-        document.getElementById('info-baseline-mape').innerText = (meta.baseline_metrics ? meta.baseline_metrics.MAPE : '--') + '%';
-        document.getElementById('info-baseline-rmse').innerText = 'RMSE: ' + (meta.baseline_metrics ? meta.baseline_metrics.RMSE : '--');
-        document.getElementById('info-mape-improvement').innerText = '-' + (meta.mape_improvement_vs_baseline || '--') + '%';
-
-        // Compute summary metrics for selected horizon
-        if (currentPredictions.length > 0) {
-          const totalKwh = currentPredictions.reduce((acc, p) => acc + p.Forecast_kWh, 0);
-          const avgKwh = totalKwh / currentPredictions.length;
-          const peakKwh = Math.max(...currentPredictions.map(p => p.Forecast_kWh));
-          const minKwh = Math.min(...currentPredictions.map(p => p.Forecast_kWh));
-
-          document.getElementById('stat-total-kwh').innerText = totalKwh.toFixed(1) + ' kWh';
-          document.getElementById('stat-avg-kwh').innerText = avgKwh.toFixed(2) + ' kWh/h';
-          document.getElementById('stat-peak-kwh').innerText = peakKwh.toFixed(2) + ' kWh';
-          document.getElementById('stat-min-kwh').innerText = minKwh.toFixed(2) + ' kWh';
+        // 1. Populate summary
+        if (meta.prophet_metrics) {
+          document.getElementById('info-prophet-mape').innerText = meta.prophet_metrics.MAPE + '%';
+        }
+        if (meta.mape_improvement_vs_baseline) {
+          document.getElementById('info-mape-diff').innerText = '+' + meta.mape_improvement_vs_baseline + '%';
         }
 
-        renderTable();
+        // 2. Render Main Forecast Plot
+        renderForecastPlot(actuals, preds);
+
+        // 3. Render Predictions Stream Table
+        renderPredictionsTable(preds);
       }
-    });
+    })
+    .catch(e => console.error('Forecast load error:', e));
 }
 
-function renderTable(filterQuery = '') {
+function renderForecastPlot(actuals, preds) {
+  const histX = actuals.map(a => a.Timestamp);
+  const histY = actuals.map(a => a.Actual_kWh);
+
+  const allX = [...histX, ...preds.map(p => p.Timestamp)];
+  const allY = [...actuals.map(a => a.Prophet_Fitted_kWh !== undefined ? a.Prophet_Fitted_kWh : a.Actual_kWh), ...preds.map(p => p.Forecast_kWh)];
+  const allLower = [...actuals.map(a => a.yhat_lower !== undefined ? a.yhat_lower : a.Actual_kWh), ...preds.map(p => p.yhat_lower)];
+  const allUpper = [...actuals.map(a => a.yhat_upper !== undefined ? a.yhat_upper : a.Actual_kWh), ...preds.map(p => p.yhat_upper)];
+
+  const splitTimestamp = actuals.length > 0 ? actuals[actuals.length - 1].Timestamp : null;
+
+  const traceUpper = {
+    x: allX,
+    y: allUpper,
+    type: 'scatter',
+    mode: 'lines',
+    line: { color: 'transparent' },
+    showlegend: false,
+    hoverinfo: 'skip'
+  };
+
+  const traceLower = {
+    x: allX,
+    y: allLower,
+    type: 'scatter',
+    mode: 'lines',
+    fill: 'tonexty',
+    fillcolor: 'rgba(159, 238, 142, 0.15)',
+    line: { color: 'transparent' },
+    name: '95% CI',
+    hoverinfo: 'skip'
+  };
+
+  const traceActual = {
+    x: histX,
+    y: histY,
+    name: 'Actual',
+    type: 'scatter',
+    mode: 'lines',
+    line: { color: '#8a9484', width: 2, shape: 'spline' },
+    hoverinfo: 'x+y'
+  };
+
+  const traceForecast = {
+    x: allX,
+    y: allY,
+    name: 'Forecast',
+    type: 'scatter',
+    mode: 'lines+markers',
+    line: { color: '#9fee8e', width: 3, dash: 'dash', shape: 'spline' },
+    marker: { size: 4, color: '#9fee8e' },
+    hoverinfo: 'x+y'
+  };
+
+  const layout = {
+    autosize: true,
+    paper_bgcolor: 'transparent',
+    plot_bgcolor: 'transparent',
+    margin: { l: 40, r: 20, t: 15, b: 35 },
+    font: { color: '#c0c9b9', family: 'Sora, sans-serif', size: 12 },
+    xaxis: {
+      gridcolor: 'rgba(255, 255, 255, 0.05)',
+      tickfont: { color: '#c0c9b9' },
+      showline: true,
+      linecolor: 'rgba(255, 255, 255, 0.1)'
+    },
+    yaxis: {
+      gridcolor: 'rgba(255, 255, 255, 0.05)',
+      tickfont: { color: '#c0c9b9' },
+      showline: true,
+      linecolor: 'rgba(255, 255, 255, 0.1)'
+    },
+    showlegend: false,
+    shapes: splitTimestamp ? [
+      {
+        type: 'line',
+        x0: splitTimestamp,
+        x1: splitTimestamp,
+        y0: 0,
+        y1: 1,
+        yref: 'paper',
+        line: { color: 'rgba(138, 148, 132, 0.5)', width: 1.5, dash: 'dot' }
+      }
+    ] : [],
+    annotations: splitTimestamp ? [
+      {
+        x: splitTimestamp,
+        y: 1.02,
+        yref: 'paper',
+        text: 'NOW',
+        showarrow: false,
+        font: { color: '#cde5ff', size: 10, family: 'Sora, sans-serif' },
+        bgcolor: '#001525',
+        bordercolor: 'rgba(255, 255, 255, 0.2)',
+        borderwidth: 1,
+        borderpad: 4,
+        xanchor: 'center'
+      }
+    ] : []
+  };
+
+  Plotly.newPlot('chart-forecast', [traceUpper, traceLower, traceActual, traceForecast], layout, { responsive: true, displayModeBar: false });
+}
+
+function renderPredictionsTable(preds) {
   const tbody = document.getElementById('tbody-forecast');
-  if (!currentPredictions || currentPredictions.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No predictions available</td></tr>';
+  if (!preds || preds.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-on-surface-variant opacity-60">No predictions available</td></tr>';
     return;
   }
 
-  const query = filterQuery.toLowerCase().trim();
-  const filtered = currentPredictions.filter(p => {
-    if (!query) return true;
-    return p.Timestamp.toLowerCase().includes(query) || (p.Occupancy_Level && p.Occupancy_Level.toLowerCase().includes(query));
-  });
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No matching hours found</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = filtered.map((p, idx) => {
-    const range = (p.yhat_upper - p.yhat_lower).toFixed(2);
-    const occBadge = p.Occupancy_Level === 'High' 
-      ? 'bg-danger-subtle text-danger border border-danger-subtle'
-      : (p.Occupancy_Level === 'Low' 
-          ? 'bg-success-subtle text-success border border-success-subtle' 
-          : 'bg-warning-subtle text-warning border border-warning-subtle');
-
+  tbody.innerHTML = preds.map(p => {
     return `
-      <tr>
-        <td class="text-muted small">${idx + 1}</td>
-        <td class="fw-semibold text-light">${p.Timestamp}</td>
-        <td>
-          <span class="text-purple fw-bold fs-6">${p.Forecast_kWh} kWh</span>
-        </td>
-        <td>
-          <span class="text-cyan small">${p.yhat_lower}</span>
-          <span class="text-muted mx-1">to</span>
-          <span class="text-purple small">${p.yhat_upper} kWh</span>
-        </td>
-        <td>
-          <span class="badge bg-secondary-subtle text-light">± ${(range / 2).toFixed(2)} kWh</span>
-        </td>
-        <td class="text-warning">
-          <i class="fa-solid fa-temperature-half me-1 text-warning"></i>${p.Temperature_C}°C
-        </td>
-        <td>
-          <span class="badge ${occBadge} rounded-pill px-2">${p.Occupancy_Level || 'Medium'}</span>
-        </td>
-        <td class="text-muted small">
-          ${p.Daily_Seasonality ? (p.Daily_Seasonality > 0 ? '+' : '') + p.Daily_Seasonality.toFixed(2) + ' kWh' : '—'}
-        </td>
+      <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+        <td class="py-3 px-4 font-label-md text-on-surface">${p.Timestamp}</td>
+        <td class="py-3 px-4 text-primary font-bold">${p.Forecast_kWh}</td>
+        <td class="py-3 px-4 text-on-surface-variant">${p.yhat_lower}</td>
+        <td class="py-3 px-4 text-on-surface-variant">${p.yhat_upper}</td>
+        <td class="py-3 px-4 text-[#FFF8D2]">${p.Temperature_C !== undefined ? p.Temperature_C + '°C' : '—'}</td>
+        <td class="py-3 px-4 text-secondary">${p.Occupancy_Level || 'Medium'}</td>
       </tr>
     `;
   }).join('');
 }
 
 function exportToCsv() {
-  if (!currentPredictions || currentPredictions.length === 0) {
-    alert('No forecast data to export');
+  if (!currentForecastData || !currentForecastData.predictions) {
+    alert('No forecast data loaded to export.');
     return;
   }
-
-  const headers = ['Timestamp', 'Forecast_kWh', 'yhat_lower', 'yhat_upper', 'Temperature_C', 'Occupancy_Level', 'Daily_Seasonality'];
-  const rows = currentPredictions.map(p => [
+  const headers = ['Timestamp', 'Forecast_kWh', 'yhat_lower', 'yhat_upper', 'Temperature_C', 'Occupancy_Level'];
+  const rows = currentForecastData.predictions.map(p => [
     p.Timestamp,
     p.Forecast_kWh,
     p.yhat_lower,
     p.yhat_upper,
-    p.Temperature_C,
-    p.Occupancy_Level || 'Medium',
-    p.Daily_Seasonality || 0
+    p.Temperature_C || '',
+    p.Occupancy_Level || ''
   ]);
-
   const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
   link.setAttribute('href', encodedUri);
-  link.setAttribute('download', `prophet_forecast_stream_${document.getElementById('select-horizon').value}h.csv`);
+  link.setAttribute('download', `prophet_forecast_${document.getElementById('select-horizon').value}h.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

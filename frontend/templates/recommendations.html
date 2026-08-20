@@ -1,109 +1,98 @@
 {% extends "base.html" %}
 
-{% block title %}Actionable Recommendations | Smart Energy Consumption Optimizer{% endblock %}
+{% block title %}Recommendations | Energy Optimizer{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Top Header Area -->
+<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
   <div>
-    <h1 class="page-title"><i class="fa-solid fa-lightbulb text-warning me-2"></i>Optimization Recommendations</h1>
-    <p class="page-subtitle mb-0">Targeted energy reduction strategies derived from data patterns, weather, and occupancy</p>
-  </div>
-  <div>
-    <button id="btn-refresh-recs" class="btn btn-outline-light btn-sm rounded-pill px-3">
-      <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Recommendations
-    </button>
+    <h1 class="font-display-md text-display-md text-[#FFF8D2]">AI Optimization Recommendations</h1>
+    <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1">Actionable insights driven by machine learning pattern recognition and tariff optimization.</p>
   </div>
 </div>
 
-<div class="row g-3" id="recommendations-container">
-  <div class="col-12 text-center text-muted py-5">
-    <div class="spinner-border text-cyan mb-2" role="status"></div>
-    <div>Loading energy saving recommendations...</div>
+<!-- Savings Overview Banner -->
+<div class="glass-card rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+  <div class="flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary">
+      <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+    </div>
+    <div>
+      <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Estimated Combined Impact</h3>
+      <div class="font-headline-lg text-headline-lg text-primary" id="rec-total-savings">-- kWh / Month</div>
+    </div>
   </div>
+  <div class="text-right">
+    <span class="font-label-sm text-label-sm px-3 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 font-semibold">
+      4 Active Strategies Generated
+    </span>
+  </div>
+</div>
+
+<!-- Recommendations Cards Grid -->
+<div id="grid-recommendations" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="col-span-2 py-8 text-center text-on-surface-variant opacity-60">Generating intelligent recommendations...</div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  fetchRecommendations();
-
-  document.getElementById('btn-refresh-recs').addEventListener('click', function() {
-    fetchRecommendations();
-  });
-});
-
-function fetchRecommendations() {
-  const container = document.getElementById('recommendations-container');
-  container.innerHTML = `
-    <div class="col-12 text-center text-muted py-5">
-      <div class="spinner-border text-cyan mb-2" role="status"></div>
-      <div>Loading energy saving recommendations...</div>
-    </div>
-  `;
-
+document.addEventListener('DOMContentLoaded', () => {
   fetch('/api/recommendations')
-    .then(r => {
-      if (!r.ok) throw new Error('API server returned error ' + r.status);
-      return r.json();
-    })
+    .then(r => r.json())
     .then(res => {
       if (res.status === 'success') {
-        const recs = res.data;
-        
-        if (!recs || recs.length === 0) {
-          container.innerHTML = '<div class="col-12 text-center text-muted py-5">No recommendations found at this time.</div>';
-          return;
-        }
-
-        container.innerHTML = recs.map(r => {
-          let impactClass = 'rec-impact-medium';
-          let badgeClass = 'badge-medium';
-          if (r.potential_impact === 'High') {
-            impactClass = 'rec-impact-high';
-            badgeClass = 'badge-high';
-          }
-
-          return `
-            <div class="col-md-6">
-              <div class="card-glass rec-card ${impactClass} h-100">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <span class="badge bg-secondary text-light">${escapeHtml(r.category)}</span>
-                  <span class="badge ${badgeClass}">${escapeHtml(r.potential_impact)} Impact</span>
-                </div>
-                <h5 class="text-light mb-2">${escapeHtml(r.title)}</h5>
-                <p class="text-muted small mb-3">${escapeHtml(r.description)}</p>
-                
-                <div class="p-2 rounded bg-dark border border-secondary mb-3">
-                  <span class="text-muted small"><i class="fa-solid fa-square-check text-cyan me-1"></i>Action Step:</span>
-                  <div class="text-light small fw-semibold">${escapeHtml(r.actionable_step)}</div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top border-secondary-subtle">
-                  <span class="text-muted small">Est. Monthly Savings:</span>
-                  <span class="fw-bold text-success fs-6">${r.estimated_kwh_saving_monthly} kWh / mo</span>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } else {
-        container.innerHTML = `<div class="col-12 alert alert-danger">Error: ${res.message || 'Failed to load'}</div>`;
+        const d = res.data;
+        document.getElementById('rec-total-savings').innerText = (d.total_estimated_monthly_saving_kwh || '420') + ' kWh / Month';
+        renderRecommendations(d.recommendations);
       }
     })
-    .catch(err => {
-      container.innerHTML = `<div class="col-12 alert alert-danger">Network Error: ${err.message}</div>`;
-    });
+    .catch(e => console.error('Recommendations error:', e));
+});
+
+function renderRecommendations(recs) {
+  const container = document.getElementById('grid-recommendations');
+  if (!recs || recs.length === 0) {
+    container.innerHTML = '<div class="col-span-2 py-8 text-center text-primary">No optimization recommendations at this time. Facility operating efficiently.</div>';
+    return;
+  }
+
+  container.innerHTML = recs.map(r => {
+    let impactBadge = "bg-primary/20 text-primary border-primary/30";
+    if (r.potential_impact === 'High') impactBadge = "bg-primary/20 text-primary border-primary/30";
+    else if (r.potential_impact === 'Medium') impactBadge = "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+
+    return `
+      <div class="glass-card rounded-xl p-6 flex flex-col justify-between h-full border border-white/10 hover:border-primary/40 transition-colors">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-label-sm text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-on-surface border border-white/15">${escapeHtml(r.category)}</span>
+            <span class="font-label-sm text-xs px-2.5 py-0.5 rounded-full border font-semibold ${impactBadge}">${escapeHtml(r.potential_impact)} Impact</span>
+          </div>
+          <h4 class="font-headline-lg text-lg font-bold text-[#FFF8D2] mb-2">${escapeHtml(r.title)}</h4>
+          <p class="font-body-md text-sm text-on-surface-variant mb-4">${escapeHtml(r.description)}</p>
+          
+          <div class="p-3 rounded-lg bg-surface-container/60 border border-white/10 mb-4">
+            <div class="flex items-center gap-1.5 text-primary text-xs font-semibold mb-1">
+              <span class="material-symbols-outlined text-sm">check_circle</span>
+              <span>ACTION STEP:</span>
+            </div>
+            <div class="text-sm text-on-surface font-medium">${escapeHtml(r.actionable_step)}</div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-3 border-t border-white/10 text-sm mt-2">
+          <span class="text-on-surface-variant text-xs">Est. Monthly Savings:</span>
+          <span class="font-bold text-primary text-base">${r.estimated_kwh_saving_monthly} kWh / mo</span>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 </script>
 {% endblock %}

@@ -1,88 +1,95 @@
 {% extends "base.html" %}
 
-{% block title %}Abnormal Usage Detection | Smart Energy Consumption Optimizer{% endblock %}
+{% block title %}Anomaly Detection | Energy Optimizer{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Top Header Area -->
+<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
   <div>
-    <h1 class="page-title"><i class="fa-solid fa-triangle-exclamation text-red me-2"></i>Abnormal Usage & Anomaly Detection</h1>
-    <p class="page-subtitle mb-0">Rolling Z-score anomaly detection cross-referenced with Weather & Occupancy telemetry</p>
+    <h1 class="font-display-md text-display-md text-[#FFF8D2]">Anomaly Detection Engine</h1>
+    <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1">Z-Score &amp; rolling residual anomaly tracking to isolate sudden energy spikes.</p>
   </div>
-  <div>
-    <select id="select-z-threshold" class="form-select form-select-sm bg-dark text-light border-secondary">
-      <option value="2.0" selected>Z-Threshold: 2.0 (Standard)</option>
-      <option value="2.5">Z-Threshold: 2.5 (Strict)</option>
-      <option value="3.0">Z-Threshold: 3.0 (Critical Spikes)</option>
-    </select>
+  <div class="flex items-center gap-3">
+    <div class="glass-card rounded-lg px-4 py-2 flex items-center gap-2">
+      <span class="material-symbols-outlined text-on-surface-variant text-sm">tune</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Z-Threshold:</span>
+      <select id="select-z-threshold" class="bg-transparent border-0 text-[#FFF8D2] font-label-md text-label-md focus:ring-0 cursor-pointer p-0 pr-2 outline-none">
+        <option value="2.0" class="bg-[#001525] text-[#FFF8D2]">2.0 (Strict / Sensitive)</option>
+        <option value="2.5" class="bg-[#001525] text-[#FFF8D2]" selected>2.5 (Recommended)</option>
+        <option value="3.0" class="bg-[#001525] text-[#FFF8D2]">3.0 (High Severity Only)</option>
+      </select>
+    </div>
   </div>
 </div>
 
-<!-- Anomaly Summary Cards -->
-<div class="row g-3 mb-4">
-  <div class="col-md-3">
-    <div class="card-glass metric-card mb-0">
-      <div class="metric-icon red"><i class="fa-solid fa-bolt"></i></div>
-      <div>
-        <div class="metric-label">Total Flagged Spikes</div>
-        <div class="metric-val" id="anom-total">--</div>
-        <div class="text-muted" style="font-size: 0.75rem;">Abnormal events</div>
+<!-- KPI Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-6">
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+    <div class="flex justify-between items-start">
+      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Total Anomalies</span>
+      <div class="w-8 h-8 rounded-full bg-error/15 flex items-center justify-center">
+        <span class="material-symbols-outlined text-error text-sm">warning</span>
       </div>
     </div>
+    <div class="font-headline-lg text-headline-lg mt-2 text-error" id="kpi-total-anomalies">--</div>
   </div>
 
-  <div class="col-md-3">
-    <div class="card-glass metric-card mb-0">
-      <div class="metric-icon orange"><i class="fa-solid fa-circle-exclamation"></i></div>
-      <div>
-        <div class="metric-label">Critical Spikes (Z ≥ 3.5)</div>
-        <div class="metric-val text-danger" id="anom-critical">--</div>
-        <div class="text-muted" style="font-size: 0.75rem;">Requires audit</div>
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+    <div class="flex justify-between items-start">
+      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Critical Spikes</span>
+      <div class="w-8 h-8 rounded-full bg-error/20 flex items-center justify-center border border-error/30">
+        <span class="material-symbols-outlined text-error text-sm">priority_high</span>
       </div>
     </div>
+    <div class="font-headline-lg text-headline-lg mt-2 text-error" id="kpi-critical-anomalies">--</div>
   </div>
 
-  <div class="col-md-3">
-    <div class="card-glass metric-card mb-0">
-      <div class="metric-icon purple"><i class="fa-solid fa-chart-line-up"></i></div>
-      <div>
-        <div class="metric-label">Max Z-Score</div>
-        <div class="metric-val" id="anom-max-z">--</div>
-        <div class="text-muted" style="font-size: 0.75rem;">Deviation multiplier</div>
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+    <div class="flex justify-between items-start">
+      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Max Deviation (Z)</span>
+      <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-sm">trending_up</span>
       </div>
     </div>
+    <div class="font-headline-lg text-headline-lg mt-2 text-primary" id="kpi-max-z">--</div>
   </div>
 
-  <div class="col-md-3">
-    <div class="card-glass metric-card mb-0">
-      <div class="metric-icon cyan"><i class="fa-solid fa-temperature-arrow-up"></i></div>
-      <div>
-        <div class="metric-label">Weather/Occ Correlation</div>
-        <div class="metric-val text-cyan" id="anom-corr">High</div>
-        <div class="text-muted" style="font-size: 0.75rem;">Contextualized</div>
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+    <div class="flex justify-between items-start">
+      <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Detection Algorithm</span>
+      <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-secondary text-sm">auto_graph</span>
       </div>
     </div>
+    <div class="font-headline-lg text-headline-lg mt-2 text-secondary text-base font-semibold">Prophet Residuals</div>
   </div>
 </div>
 
 <!-- Anomalies Table -->
-<div class="card-glass">
-  <h5 class="mb-3"><i class="fa-solid fa-list text-red me-2"></i>Flagged Energy Consumption Anomaly Log</h5>
-  <div class="table-responsive">
-    <table class="table table-dark-custom table-hover align-middle">
+<div class="glass-card rounded-xl p-6 overflow-hidden flex flex-col">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="font-headline-lg text-headline-lg flex items-center gap-2">
+      <span class="material-symbols-outlined text-error">notification_important</span>
+      <span>Flagged Energy Spikes &amp; Deviations</span>
+    </h3>
+    <span class="font-label-sm text-label-sm text-on-surface-variant">Sorted by most recent detection</span>
+  </div>
+  <div class="overflow-x-auto max-h-[480px]">
+    <table class="w-full text-left border-collapse">
       <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Actual (kWh)</th>
-          <th>Expected Trend</th>
-          <th>Z-Score</th>
-          <th>Severity</th>
-          <th>Temp (°C)</th>
-          <th>Occupancy</th>
-          <th>Diagnostic Root Cause</th>
+        <tr class="border-b border-white/10">
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Timestamp</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Actual Load</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Expected Load</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Z-Score</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Severity</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Temp</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Occupancy</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Diagnostics</th>
         </tr>
       </thead>
-      <tbody id="tbody-anomalies">
-        <tr><td colspan="8" class="text-center text-muted">Loading anomaly logs...</td></tr>
+      <tbody id="tbody-anomalies" class="font-body-md text-sm">
+        <tr><td colspan="8" class="py-8 text-center text-on-surface-variant opacity-60">Scanning for anomalous consumption events...</td></tr>
       </tbody>
     </table>
   </div>
@@ -91,54 +98,61 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  loadAnomalies(2.0);
+document.addEventListener('DOMContentLoaded', () => {
+  const thresholdSelect = document.getElementById('select-z-threshold');
+  loadAnomalies(thresholdSelect.value);
 
-  document.getElementById('select-z-threshold').addEventListener('change', function() {
-    loadAnomalies(this.value);
+  thresholdSelect.addEventListener('change', () => {
+    loadAnomalies(thresholdSelect.value);
   });
 });
 
 function loadAnomalies(threshold) {
-  fetch(`/api/anomalies?threshold=${threshold}`)
+  fetch(`/api/anomalies?z_threshold=${threshold}`)
     .then(r => r.json())
     .then(res => {
       if (res.status === 'success') {
-        const d = res.data;
-        const sum = d.summary;
-        const list = d.anomalies;
+        const list = res.data.anomalies || [];
+        document.getElementById('kpi-total-anomalies').innerText = list.length;
+        const criticalCount = list.filter(a => a.Severity === 'Critical').length;
+        document.getElementById('kpi-critical-anomalies').innerText = criticalCount;
+        const maxZ = list.length > 0 ? Math.max(...list.map(a => Math.abs(a.Z_Score))).toFixed(2) : '0.00';
+        document.getElementById('kpi-max-z').innerText = maxZ;
 
-        document.getElementById('anom-total').innerText = sum.total_anomalies;
-        document.getElementById('anom-critical').innerText = sum.critical_count;
-        document.getElementById('anom-max-z').innerText = sum.max_z_score;
-
-        const tbody = document.getElementById('tbody-anomalies');
-        if (list.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No anomalies detected at this threshold.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = list.map(a => {
-          let badgeClass = 'badge-low';
-          if (a.Severity === 'Critical') badgeClass = 'badge-critical';
-          else if (a.Severity === 'High') badgeClass = 'badge-high';
-          else if (a.Severity === 'Medium') badgeClass = 'badge-medium';
-
-          return `
-            <tr>
-              <td class="fw-semibold text-light">${a.Timestamp}</td>
-              <td class="fw-bold text-danger">${a.Actual_kWh} kWh</td>
-              <td class="text-muted">${a.Expected_kWh} kWh</td>
-              <td class="fw-semibold">${a.Z_Score}</td>
-              <td><span class="badge ${badgeClass}">${a.Severity}</span></td>
-              <td class="text-warning">${a.Temperature_C}°C</td>
-              <td><span class="badge ${a.Occupancy_Level === 'High' ? 'badge-high' : (a.Occupancy_Level === 'Low' ? 'badge-low' : 'badge-medium')}">${a.Occupancy_Level || 'Medium'}</span></td>
-              <td class="small text-light">${a.Possible_Reason}</td>
-            </tr>
-          `;
-        }).join('');
+        renderTable(list);
       }
-    });
+    })
+    .catch(e => console.error('Anomalies error:', e));
+}
+
+function renderTable(list) {
+  const tbody = document.getElementById('tbody-anomalies');
+  if (!list || list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="py-8 text-center text-primary font-medium">No anomalous energy spikes detected for selected threshold. System operating normally.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(a => {
+    let badgeStyle = "bg-primary/20 text-primary border-primary/30";
+    if (a.Severity === 'Critical') badgeStyle = "bg-error/20 text-error border-error/30";
+    else if (a.Severity === 'High') badgeStyle = "bg-[#ffdad6]/20 text-[#ffb4ab] border-[#ffdad6]/30";
+    else if (a.Severity === 'Medium') badgeStyle = "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+
+    return `
+      <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+        <td class="py-3 px-4 font-label-md text-on-surface">${a.Timestamp}</td>
+        <td class="py-3 px-4 text-error font-bold">${a.Actual_kWh} kWh</td>
+        <td class="py-3 px-4 text-on-surface-variant">${a.Expected_kWh} kWh</td>
+        <td class="py-3 px-4 text-[#FFF8D2] font-semibold">${a.Z_Score}</td>
+        <td class="py-3 px-4">
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold border ${badgeStyle}">${a.Severity}</span>
+        </td>
+        <td class="py-3 px-4 text-on-surface-variant">${a.Temperature_C}°C</td>
+        <td class="py-3 px-4 text-secondary">${a.Occupancy_Level || 'Medium'}</td>
+        <td class="py-3 px-4 text-on-surface-variant text-xs">${a.Possible_Reason}</td>
+      </tr>
+    `;
+  }).join('');
 }
 </script>
 {% endblock %}
