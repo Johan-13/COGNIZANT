@@ -304,16 +304,39 @@ def get_forecast_results(df, horizon_hours=24, force_retrain=False):
 
     predictions = forecaster.predict(df, horizon_hours=horizon_hours)
 
-    # Actual test set records (last 48 hours)
+    # Compute in-sample Prophet predictions for recent historical records (last 48 hours)
+    p_df = forecaster.prepare_prophet_df(df)
+    recent_p = p_df.tail(48).copy()
+
+    if forecaster.model is None:
+        if os.path.exists(PROPHET_MODEL_PATH):
+            forecaster.model = joblib.load(PROPHET_MODEL_PATH)
+        else:
+            forecaster.train(df)
+
+    hist_fc = forecaster.model.predict(recent_p[['ds', 'Temperature_C', 'Occupancy_Ratio', 'lag_24']])
+    hist_yhat = hist_fc['yhat'].values
+    hist_lower = hist_fc['yhat_lower'].values
+    hist_upper = hist_fc['yhat_upper'].values
+    hist_hours = recent_p['ds'].dt.hour.values
+
+    # Apply Overnight Baseload Floor Calibration
+    is_overnight = np.isin(hist_hours, [0, 1, 2, 3, 4, 5])
+    hist_yhat_cal = np.where(is_overnight, np.minimum(hist_yhat, forecaster.baseload_median), hist_yhat)
+    hist_yhat_cal = np.maximum(hist_yhat_cal, 0.05)
+
     recent_historical = df.tail(48).copy().reset_index()
     historical_actuals = []
     
-    for _, row in recent_historical.iterrows():
+    for i, (_, row) in enumerate(recent_historical.iterrows()):
         dt_val = row['Datetime'] if 'Datetime' in row else row.name
         occ_lvl = row.get('Occupancy_Level', 'Medium')
         historical_actuals.append({
             'Timestamp': pd.to_datetime(dt_val).strftime('%Y-%m-%d %H:%M'),
             'Actual_kWh': round(float(row['Energy_kWh']), 3),
+            'Prophet_Fitted_kWh': round(float(hist_yhat_cal[i]), 3),
+            'yhat_lower': max(0.01, round(float(hist_lower[i]), 3)),
+            'yhat_upper': max(round(float(hist_yhat_cal[i]), 3), round(float(hist_upper[i]), 3)),
             'Temperature_C': round(float(row.get('Temperature_C', 20.0)), 1),
             'Occupancy_Level': occ_lvl,
             'Occupancy_Ratio': round(float(row.get('Occupancy_Score', row.get('Occupancy_Ratio', 0.5))), 2)

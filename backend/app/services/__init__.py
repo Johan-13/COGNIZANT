@@ -10,3 +10,4 @@ from backend.app.services.forecasting import get_forecast_results, EnergyForecas
 from backend.app.services.anomaly_detection import detect_anomalies
 from backend.app.services.peak_analysis import analyze_peak_usage
 from backend.app.services.savings import generate_recommendations, calculate_cost_and_savings
+from backend.app.services.streamer import LiveDataStreamer, streamer_engine

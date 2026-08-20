@@ -1,19 +1,19 @@
 {
-  "trained_at": "2026-08-20 19:03:29",
-  "total_samples": 8760,
+  "trained_at": "2026-08-20 21:20:46",
+  "total_samples": 8771,
   "model_type": "Facebook Prophet (Multiplicative + lag_24 Regressor + Overnight Calibration)",
   "baseload_median_kWh": 1.066,
   "prophet_metrics": {
-    "MAE": 0.407,
+    "MAE": 0.4055,
     "RMSE": 0.6255,
-    "MAPE": 17.07
+    "MAPE": 16.99
   },
   "baseline_metrics": {
-    "MAE": 0.3767,
-    "RMSE": 0.7632,
-    "MAPE": 17.27
+    "MAE": 0.3828,
+    "RMSE": 0.7699,
+    "MAPE": 17.6
   },
-  "mape_improvement_vs_baseline": 0.2,
+  "mape_improvement_vs_baseline": 0.61,
   "features_used": [
     "ds",
     "y",

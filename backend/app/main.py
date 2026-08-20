@@ -1,4 +1,5 @@
 import os
+import asyncio
 from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Query, HTTPException
@@ -17,6 +18,7 @@ from backend.app.services.forecasting import get_forecast_results, EnergyForecas
 from backend.app.services.anomaly_detection import detect_anomalies
 from backend.app.services.peak_analysis import analyze_peak_usage
 from backend.app.services.savings import generate_recommendations, calculate_cost_and_savings
+from backend.app.services.streamer import streamer_engine
 
 # Global dataset cache
 _DATA_CACHE = None
@@ -26,7 +28,29 @@ def load_dataset(force_reload: bool = False):
     global _DATA_CACHE
     if _DATA_CACHE is None or force_reload:
         _DATA_CACHE = get_processed_data(force_reprocess=force_reload)
+        _DATA_CACHE, count = streamer_engine.catch_up_to_now(_DATA_CACHE)
+        if count > 0:
+            print(f"[LiveStream] Backfilled {count} hourly records up to current hour.")
     return _DATA_CACHE
+
+
+async def _hourly_stream_worker():
+    """
+    Background asyncio task: generates and appends one synthetic hourly
+    energy record every 3600 real-world seconds (1 real hour = 1 data hour).
+    Runs automatically for the entire lifetime of the server.
+    """
+    global _DATA_CACHE
+    print("[LiveStream] Background hourly streamer started. New record every 3600s.")
+    while True:
+        await asyncio.sleep(3600)  # wait 1 real hour
+        try:
+            df = load_dataset()
+            updated_df, record = streamer_engine.step(df)
+            _DATA_CACHE = updated_df
+            print(f"[LiveStream] Auto-generated record: {record['Timestamp']} | {record['Energy_kWh']} kWh")
+        except Exception as exc:
+            print(f"[LiveStream] Error generating record: {exc}")
 
 
 @asynccontextmanager
@@ -34,7 +58,14 @@ async def lifespan(app: FastAPI):
     print("Initializing Smart Energy Consumption Optimizer (FastAPI + Prophet)...")
     load_dataset()
     print("Dataset successfully loaded into memory cache.")
+    # Launch real-time 1-hour streamer in background
+    task = asyncio.create_task(_hourly_stream_worker())
     yield
+    task.cancel()  # clean up on shutdown
+    try:
+        await task
+    except asyncio.CancelledError:
+        print("[LiveStream] Background streamer stopped.")
 
 
 # Initialize FastAPI App
@@ -106,9 +137,9 @@ async def api_summary():
         summary = get_summary_metrics(df)
         
         avg_monthly_kwh = summary['avg_daily_kWh'] * 30.0
-        cost_info = calculate_cost_and_savings(avg_monthly_kwh, tariff_rate=0.15)
-        summary['estimated_monthly_cost'] = cost_info['current_estimates']['flat_monthly_cost']
-        summary['potential_monthly_savings'] = cost_info['savings_scenarios'][2]['saved_cost_monthly']  # 15% scenario
+        cost_info = calculate_cost_and_savings(avg_monthly_kwh, df=df)
+        summary['estimated_monthly_cost'] = cost_info['actual_metrics']['flat_monthly_cost']
+        summary['potential_monthly_savings'] = cost_info['actual_metrics']['total_savings_monthly']
         
         anom_res = detect_anomalies(df)
         summary['anomaly_count'] = anom_res['summary']['total_anomalies']
@@ -196,9 +227,10 @@ async def api_calculate_savings(req: SavingsRequest):
             monthly_kWh = avg_daily * 30.0
 
         res = calculate_cost_and_savings(
-            monthly_kWh=monthly_kWh,
+            monthly_kWh=req.monthly_kWh,
             tariff_rate=req.tariff_rate,
-            currency_symbol=req.currency_symbol
+            currency_symbol=req.currency_symbol,
+            df=df
         )
         return {"status": "success", "data": res}
     except Exception as e:
@@ -214,6 +246,31 @@ async def api_retrain(req: RetrainRequest = RetrainRequest()):
         return {"status": "success", "message": "Prophet model successfully retrained.", "metadata": meta}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- Live Data Streaming Endpoints ---
+
+@app.get("/api/stream/status")
+async def api_stream_status():
+    """Returns current state of the live data streamer."""
+    return {"status": "success", "data": streamer_engine.get_status()}
+
+
+@app.get("/api/stream/latest")
+async def api_stream_latest():
+    """
+    Returns the most recently auto-generated live record.
+    The frontend polls this endpoint every ~60 seconds to detect
+    new data without triggering generation itself.
+    """
+    last = streamer_engine.last_streamed_record
+    if last is None:
+        return {"status": "success", "data": None, "records_streamed": 0}
+    return {
+        "status": "success",
+        "data": last,
+        "records_streamed": streamer_engine.records_streamed
+    }
 
 
 if __name__ == '__main__':

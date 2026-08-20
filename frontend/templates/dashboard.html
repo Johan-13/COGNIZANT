@@ -8,12 +8,36 @@
     <h1 class="page-title"><i class="fa-solid fa-gauge-high text-cyan me-2"></i>Smart Energy Dashboard</h1>
     <p class="page-subtitle mb-0">Real-time meter telemetry, weather/occupancy context, and Prophet AI forecasting</p>
   </div>
-  <div>
+  <div class="d-flex align-items-center gap-2">
+    <div id="live-status-badge" class="d-none align-items-center gap-2 px-3 py-1 rounded-pill" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); font-size:0.8rem; color:#10b981;">
+      <span class="live-dot"></span> LIVE
+    </div>
+    <button id="btn-live-stream" class="btn btn-sm rounded-pill px-3" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.5); color:#10b981;">
+      <i class="fa-solid fa-circle-play me-1"></i> Start Live Stream
+    </button>
     <button id="btn-refresh" class="btn btn-outline-light btn-sm rounded-pill px-3">
       <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Data
     </button>
   </div>
 </div>
+
+<style>
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: live-pulse 1.2s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+#live-record-bar {
+  transition: background 0.4s;
+}
+</style>
 
 <!-- Metrics Cards Row -->
 <div class="row g-3 mb-4">
@@ -84,35 +108,16 @@
   </div>
 </div>
 
-<!-- Main Consumption Time Series Chart -->
+<!-- Main Prophet Predicted Demand & Confidence Bounds Chart (Top Section) -->
 <div class="row mb-4">
   <div class="col-12">
     <div class="card-glass">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0"><i class="fa-solid fa-chart-area text-cyan me-2"></i>Historical Energy Consumption & Telemetry</h5>
-        <div class="btn-group btn-group-sm" role="group">
-          <button type="button" class="btn btn-outline-info active" data-period="daily">Daily</button>
-          <button type="button" class="btn btn-outline-info" data-period="hourly">Hourly (Recent)</button>
-          <button type="button" class="btn btn-outline-info" data-period="weekly">Weekly</button>
-        </div>
+        <h5 class="mb-0"><i class="fa-solid fa-chart-line text-cyan me-2"></i>Prophet Predicted Energy Demand & 95% Confidence Bounds</h5>
+        <a href="/forecast" class="btn btn-sm btn-cyan rounded-pill">View Model Analysis <i class="fa-solid fa-arrow-right ms-1"></i></a>
       </div>
       <div class="chart-container">
-        <div id="chart-consumption" style="height: 380px; width: 100%;"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Prophet Forecast & Profile Summary Row -->
-<div class="row g-3 mb-4">
-  <div class="col-lg-7">
-    <div class="card-glass h-100">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0"><i class="fa-solid fa-wand-magic-sparkles text-purple me-2"></i>Prophet AI 24h Forecast Preview</h5>
-        <a href="/forecast" class="btn btn-sm btn-cyan rounded-pill">View Detailed Model <i class="fa-solid fa-arrow-right ms-1"></i></a>
-      </div>
-      <div class="chart-container">
-        <div id="chart-forecast-preview" style="height: 250px; width: 100%;"></div>
+        <div id="chart-forecast-preview" style="height: 380px; width: 100%;"></div>
       </div>
       <div class="d-flex justify-content-around text-center mt-3 pt-2 border-top border-secondary-subtle">
         <div>
@@ -130,12 +135,34 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div class="col-lg-5">
-    <div class="card-glass h-100">
-      <h5 class="mb-3"><i class="fa-solid fa-clock text-orange me-2"></i>24-Hour Diurnal Demand Profile</h5>
-      <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
-        <canvas id="chart-hourly-profile"></canvas>
+<!-- Compact Historical Energy Consumption & Telemetry (Bottom Section) -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fa-solid fa-chart-area text-cyan me-2"></i>Historical Energy Consumption & Telemetry</h5>
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-info active" data-period="daily">Daily</button>
+          <button type="button" class="btn btn-outline-info" data-period="hourly">Hourly (Recent)</button>
+          <button type="button" class="btn btn-outline-info" data-period="weekly">Weekly</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div id="chart-consumption" style="height: 260px; width: 100%;"></div>
+      </div>
+      <!-- Live Stream Info Bar -->
+      <div id="live-record-bar" class="d-none mt-3 px-3 py-2 rounded-2" style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); font-size:0.82rem;">
+        <div class="row text-center g-0">
+          <div class="col"><span class="text-muted">Timestamp</span><br><strong id="lr-ts" class="text-success">—</strong></div>
+          <div class="col"><span class="text-muted">Energy</span><br><strong id="lr-energy" class="text-cyan">—</strong></div>
+          <div class="col"><span class="text-muted">Temp</span><br><strong id="lr-temp" class="text-warning">—</strong></div>
+          <div class="col"><span class="text-muted">Humidity</span><br><strong id="lr-hum">—</strong></div>
+          <div class="col"><span class="text-muted">Occupancy</span><br><strong id="lr-occ">—</strong></div>
+          <div class="col"><span class="text-muted">Records Added</span><br><strong id="lr-count" class="text-purple">0</strong></div>
+          <div class="col"><span class="text-muted">Next Check</span><br><strong id="lr-next-check" class="text-muted">60s</strong></div>
+        </div>
       </div>
     </div>
   </div>
@@ -145,13 +172,10 @@
 
 {% block scripts %}
 <script>
-let hourlyChartInstance = null;
-
 document.addEventListener('DOMContentLoaded', function() {
   loadDashboardSummary();
-  loadConsumptionChart('daily');
   loadForecastPreview();
-  loadHourlyProfile();
+  loadConsumptionChart('daily');
 
   document.querySelectorAll('[data-period]').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -163,10 +187,109 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('btn-refresh').addEventListener('click', function() {
     loadDashboardSummary();
-    loadConsumptionChart('daily');
     loadForecastPreview();
-    loadHourlyProfile();
+    loadConsumptionChart('daily');
   });
+
+  // --- Live Stream Watcher (1 real hour = 1 data hour) ---
+  // The backend auto-generates a new record every 3600s.
+  // We poll /api/stream/latest every 60s to detect when that happens.
+  let liveWatcherInterval = null;
+  let liveCountdownInterval = null;
+  let liveStreamActive = false;
+  let lastKnownRecordCount = 0;
+  let nextCheckIn = 60; // seconds
+
+  document.getElementById('btn-live-stream').addEventListener('click', function() {
+    if (!liveStreamActive) {
+      startLiveWatcher();
+    } else {
+      stopLiveWatcher();
+    }
+  });
+
+  function startLiveWatcher() {
+    liveStreamActive = true;
+    const btn = document.getElementById('btn-live-stream');
+    btn.innerHTML = '<i class="fa-solid fa-circle-stop me-1"></i> Stop Watching';
+    btn.style.background = 'rgba(239,68,68,0.15)';
+    btn.style.borderColor = 'rgba(239,68,68,0.5)';
+    btn.style.color = '#ef4444';
+
+    document.getElementById('live-status-badge').classList.remove('d-none');
+    document.getElementById('live-status-badge').classList.add('d-flex');
+    document.getElementById('live-record-bar').classList.remove('d-none');
+
+    // Show current state immediately
+    checkForNewRecord();
+
+    // Poll every 60 seconds
+    nextCheckIn = 60;
+    liveWatcherInterval = setInterval(checkForNewRecord, 60000);
+
+    // Countdown display every second
+    liveCountdownInterval = setInterval(() => {
+      nextCheckIn--;
+      if (nextCheckIn <= 0) nextCheckIn = 60;
+      const el = document.getElementById('lr-next-check');
+      if (el) el.innerText = nextCheckIn + 's';
+    }, 1000);
+  }
+
+  function stopLiveWatcher() {
+    liveStreamActive = false;
+    if (liveWatcherInterval)    { clearInterval(liveWatcherInterval);    liveWatcherInterval    = null; }
+    if (liveCountdownInterval)  { clearInterval(liveCountdownInterval);  liveCountdownInterval  = null; }
+
+    const btn = document.getElementById('btn-live-stream');
+    btn.innerHTML = '<i class="fa-solid fa-circle-play me-1"></i> Watch Live Stream';
+    btn.style.background = 'rgba(16,185,129,0.15)';
+    btn.style.borderColor = 'rgba(16,185,129,0.5)';
+    btn.style.color = '#10b981';
+
+    document.getElementById('live-status-badge').classList.add('d-none');
+    document.getElementById('live-status-badge').classList.remove('d-flex');
+  }
+
+  function checkForNewRecord() {
+    nextCheckIn = 60; // reset countdown
+    fetch('/api/stream/latest')
+      .then(r => r.json())
+      .then(res => {
+        if (res.status !== 'success' || !res.data) return;
+        const rec = res.data;
+        const serverCount = res.records_streamed || 0;
+
+        // Only update chart/bar if a genuinely new record arrived
+        const isNew = serverCount > lastKnownRecordCount;
+        lastKnownRecordCount = serverCount;
+
+        // Always update the info bar with the latest known record
+        document.getElementById('lr-ts').innerText     = rec.Timestamp;
+        document.getElementById('lr-energy').innerText = rec.Energy_kWh + ' kWh';
+        document.getElementById('lr-temp').innerText   = rec.Temperature_C + ' °C';
+        document.getElementById('lr-hum').innerText    = rec.Humidity_pct + ' %';
+        document.getElementById('lr-occ').innerText    = rec.Occupancy_Level;
+        document.getElementById('lr-count').innerText  = serverCount;
+
+        if (isNew) {
+          // Flash green on new data
+          const bar = document.getElementById('live-record-bar');
+          bar.style.background = 'rgba(16,185,129,0.28)';
+          setTimeout(() => { bar.style.background = 'rgba(16,185,129,0.08)'; }, 800);
+
+          // Append to Plotly chart without full reload
+          const chartDiv = document.getElementById('chart-consumption');
+          if (chartDiv && chartDiv.data && chartDiv.data.length > 0) {
+            Plotly.extendTraces('chart-consumption', {
+              x: [[rec.Timestamp]],
+              y: [[rec.Energy_kWh]]
+            }, [0]);
+          }
+        }
+      })
+      .catch(err => console.error('Live watcher error:', err));
+  }
 });
 
 function loadDashboardSummary() {
@@ -180,7 +303,7 @@ function loadDashboardSummary() {
         document.getElementById('metric-temp').innerText = d.avg_temperature_C + ' °C';
         document.getElementById('metric-occ').innerText = Math.round(d.avg_occupancy_ratio * 100) + ' %';
         document.getElementById('metric-anomalies').innerText = d.anomaly_count;
-        document.getElementById('metric-savings').innerText = '$' + d.potential_monthly_savings.toFixed(2);
+        document.getElementById('metric-savings').innerText = '₹' + d.potential_monthly_savings.toLocaleString();
       }
     });
 }
@@ -245,83 +368,75 @@ function loadForecastPreview() {
         const d = res.data;
         const preds = d.predictions;
         const meta = d.metadata;
+        const actuals = d.historical_test_actuals || [];
 
         document.getElementById('val-prophet-mape').innerText = meta.prophet_metrics.MAPE + ' %';
         document.getElementById('val-baseline-mape').innerText = meta.baseline_metrics.MAPE + ' %';
         document.getElementById('val-mape-diff').innerText = '-' + meta.mape_improvement_vs_baseline + ' %';
 
-        const x = preds.map(p => p.Timestamp.split(' ')[1]);
-        const yhat = preds.map(p => p.Forecast_kWh);
-        const yLower = preds.map(p => p.yhat_lower);
-        const yUpper = preds.map(p => p.yhat_upper);
+        const histX = actuals.map(a => a.Timestamp);
+        const histY = actuals.map(a => a.Actual_kWh);
+
+        const allX = [...actuals.map(a => a.Timestamp), ...preds.map(p => p.Timestamp)];
+        const allY = [...actuals.map(a => a.Prophet_Fitted_kWh !== undefined ? a.Prophet_Fitted_kWh : a.Actual_kWh), ...preds.map(p => p.Forecast_kWh)];
+        const allLower = [...actuals.map(a => a.yhat_lower !== undefined ? a.yhat_lower : a.Actual_kWh), ...preds.map(p => p.yhat_lower)];
+        const allUpper = [...actuals.map(a => a.yhat_upper !== undefined ? a.yhat_upper : a.Actual_kWh), ...preds.map(p => p.yhat_upper)];
 
         const traceUpper = {
-          x: x, y: yUpper, type: 'scatter', mode: 'lines',
-          line: { color: 'transparent' }, showlegend: false
+          x: allX, y: allUpper, type: 'scatter', mode: 'lines',
+          line: { color: 'transparent' }, showlegend: false, hoverinfo: 'skip'
         };
         const traceLower = {
-          x: x, y: yLower, type: 'scatter', mode: 'lines',
-          fill: 'tonexty', fillcolor: 'rgba(139, 92, 246, 0.2)',
-          line: { color: 'transparent' }, name: '95% Confidence'
+          x: allX, y: allLower, type: 'scatter', mode: 'lines',
+          fill: 'tonexty', fillcolor: 'rgba(139, 92, 246, 0.20)',
+          line: { color: 'transparent' }, name: '95% Confidence Interval'
         };
-        const traceHat = {
-          x: x, y: yhat, type: 'scatter', mode: 'lines+markers',
-          line: { color: '#8b5cf6', width: 3 }, name: 'Prophet Forecast'
+        const traceHist = {
+          x: histX, y: histY, name: 'Recent Actuals', type: 'scatter', mode: 'lines',
+          line: { color: '#06b6d4', width: 2 }
         };
+        const traceProphet = {
+          x: allX, y: allY, name: 'Prophet Demand (yhat)', type: 'scatter', mode: 'lines+markers',
+          line: { color: '#8b5cf6', width: 2.5 },
+          marker: { size: 3.5, color: '#8b5cf6' }
+        };
+
+        const splitTimestamp = actuals.length > 0 ? actuals[actuals.length - 1].Timestamp : null;
 
         const layout = {
           autosize: true,
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
-          margin: { l: 40, r: 20, t: 10, b: 35 },
+          margin: { l: 40, r: 15, t: 20, b: 35 },
           font: { color: '#94a3b8', family: 'Inter' },
           xaxis: { gridcolor: 'rgba(255,255,255,0.05)' },
-          yaxis: { title: 'kWh', gridcolor: 'rgba(255,255,255,0.05)' },
-          legend: { orientation: 'h', y: 1.15 }
+          yaxis: { title: 'Energy (kWh)', gridcolor: 'rgba(255,255,255,0.05)' },
+          legend: { orientation: 'h', y: 1.15 },
+          shapes: splitTimestamp ? [
+            {
+              type: 'line',
+              x0: splitTimestamp,
+              x1: splitTimestamp,
+              y0: 0,
+              y1: 1,
+              yref: 'paper',
+              line: { color: 'rgba(255, 255, 255, 0.35)', width: 1.5, dash: 'dot' }
+            }
+          ] : [],
+          annotations: splitTimestamp ? [
+            {
+              x: splitTimestamp,
+              y: 1.03,
+              yref: 'paper',
+              text: 'Now',
+              showarrow: false,
+              font: { color: '#8b5cf6', size: 10 },
+              xanchor: 'center'
+            }
+          ] : []
         };
 
-        Plotly.newPlot('chart-forecast-preview', [traceUpper, traceLower, traceHat], layout, { responsive: true, displayModeBar: false });
-      }
-    });
-}
-
-function loadHourlyProfile() {
-  fetch('/api/hourly')
-    .then(r => r.json())
-    .then(res => {
-      if (res.status === 'success') {
-        const prof = res.hourly_profile;
-        const labels = prof.map(p => p.Hour + ':00');
-        const data = prof.map(p => p.Energy_kWh_mean || p.mean || p.Energy_kWh);
-
-        if (hourlyChartInstance) {
-          hourlyChartInstance.destroy();
-        }
-
-        const ctx = document.getElementById('chart-hourly-profile').getContext('2d');
-        hourlyChartInstance = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Avg Hourly kWh',
-              data: data,
-              backgroundColor: 'rgba(6, 182, 212, 0.6)',
-              borderColor: '#06b6d4',
-              borderWidth: 1,
-              borderRadius: 4
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
-            }
-          }
-        });
+        Plotly.newPlot('chart-forecast-preview', [traceUpper, traceLower, traceHist, traceProphet], layout, { responsive: true, displayModeBar: false });
       }
     });
 }

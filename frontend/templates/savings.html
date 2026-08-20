@@ -5,101 +5,172 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="page-title"><i class="fa-solid fa-calculator text-green me-2"></i>Cost & Currency Savings Calculator</h1>
-    <p class="page-subtitle mb-0">Quantify financial savings in currency ($ / ₹ / €) across tariff structures and reduction targets</p>
+    <h1 class="page-title"><i class="fa-solid fa-indian-rupee-sign text-green me-2"></i>Cost & Savings Optimization Engine</h1>
+    <p class="page-subtitle mb-0">Quantify financial energy savings in <strong>Indian Rupees (₹)</strong> comparing <strong>Actual Historical Values</strong> vs. <strong>Prophet Predicted Values</strong></p>
+  </div>
+  <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 border border-success-subtle rounded-pill">
+    <i class="fa-solid fa-bolt me-1"></i> Indian Tiered Slab Tariff
+  </span>
+</div>
+
+<!-- Indian Slab Tariff Rate Card -->
+<div class="card-glass mb-4 p-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0 text-cyan"><i class="fa-solid fa-tags me-2"></i>Active Indian Electricity Slab Tariff Rates</h6>
+    <span class="text-muted small">Telescopic Billing (per kWh)</span>
+  </div>
+  <div class="row g-2 text-center">
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="p-2 rounded" style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3);">
+        <span class="text-muted small">0 – 50 Units</span>
+        <div class="fw-bold text-cyan fs-5">₹3.35</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="p-2 rounded" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);">
+        <span class="text-muted small">51 – 100 Units</span>
+        <div class="fw-bold text-success fs-5">₹4.25</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="p-2 rounded" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3);">
+        <span class="text-muted small">101 – 150 Units</span>
+        <div class="fw-bold text-warning fs-5">₹5.35</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="p-2 rounded" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+        <span class="text-muted small">151 – 200 Units</span>
+        <div class="fw-bold text-danger fs-5">₹7.20</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="p-2 rounded" style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3);">
+        <span class="text-muted small">201 – 250 Units</span>
+        <div class="fw-bold text-purple fs-5">₹8.50</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="p-2 rounded" style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3);">
+        <span class="text-muted small">> 250 Units</span>
+        <div class="fw-bold text-light fs-5">₹8.50</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Input Parameters Form Card -->
-<div class="card-glass mb-4">
-  <form id="form-savings" class="row g-3 align-items-end">
-    <div class="col-md-3">
-      <label class="form-label text-muted small">Monthly Consumption (kWh)</label>
-      <input type="number" id="input-kwh" class="form-control bg-dark text-light border-secondary" placeholder="Auto-calculated" step="10">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label text-muted small">Tariff Rate (per kWh)</label>
-      <input type="number" id="input-tariff" class="form-control bg-dark text-light border-secondary" value="0.15" step="0.01">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label text-muted small">Currency Symbol</label>
-      <select id="input-currency" class="form-select bg-dark text-light border-secondary">
-        <option value="$" selected>$ USD</option>
-        <option value="₹">₹ INR</option>
-        <option value="€">€ EUR</option>
-        <option value="£">£ GBP</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <button type="submit" class="btn btn-cyan w-100 rounded-pill"><i class="fa-solid fa-calculator me-1"></i> Calculate Savings</button>
-    </div>
-  </form>
-</div>
-
-<!-- Current Cost Overview Banner -->
+<!-- Actual vs. Predicted Metrics Comparison Cards -->
 <div class="row g-3 mb-4">
-  <div class="col-md-3">
+  <div class="col-md-6 col-xl-4">
     <div class="card-glass metric-card mb-0">
-      <div class="metric-icon green"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+      <div class="metric-icon cyan"><i class="fa-solid fa-bolt"></i></div>
       <div>
-        <div class="metric-label">Estimated Monthly Cost</div>
-        <div class="metric-val text-success" id="cost-monthly">--</div>
-        <div class="text-muted" style="font-size: 0.75rem;">Flat tariff baseline</div>
+        <div class="metric-label">Actual Monthly Cost</div>
+        <div class="metric-val text-cyan" id="actual-monthly-cost">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;" id="actual-monthly-kwh">-- kWh recorded</div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-3">
+  <div class="col-md-6 col-xl-4">
     <div class="card-glass metric-card mb-0">
-      <div class="metric-icon blue"><i class="fa-solid fa-calendar"></i></div>
+      <div class="metric-icon purple"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
       <div>
-        <div class="metric-label">Estimated Annual Cost</div>
-        <div class="metric-val" id="cost-yearly">--</div>
-        <div class="text-muted" style="font-size: 0.75rem;">12-month projection</div>
+        <div class="metric-label">Predicted Monthly Cost</div>
+        <div class="metric-val text-purple" id="pred-monthly-cost">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;" id="pred-monthly-kwh">-- kWh forecasted</div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-3">
+  <div class="col-md-6 col-xl-4">
     <div class="card-glass metric-card mb-0">
-      <div class="metric-icon orange"><i class="fa-solid fa-clock"></i></div>
+      <div class="metric-icon orange"><i class="fa-solid fa-scale-unbalanced"></i></div>
       <div>
-        <div class="metric-label">Time-of-Use Monthly</div>
-        <div class="metric-val text-warning" id="cost-tou">--</div>
-        <div class="text-muted" style="font-size: 0.75rem;">Includes peak multiplier</div>
+        <div class="metric-label">Actual vs Pred Variance</div>
+        <div class="metric-val text-warning" id="variance-cost">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;" id="variance-pct">-- difference</div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-3">
+  <div class="col-md-6 col-xl-4">
     <div class="card-glass metric-card mb-0">
-      <div class="metric-icon purple"><i class="fa-solid fa-percent"></i></div>
+      <div class="metric-icon green"><i class="fa-solid fa-piggy-bank"></i></div>
       <div>
-        <div class="metric-label">15% Target Monthly Savings</div>
-        <div class="metric-val text-cyan" id="cost-saved-15">--</div>
-        <div class="text-muted" style="font-size: 0.75rem;">Quantified reduction</div>
+        <div class="metric-label">Total Actual Savings</div>
+        <div class="metric-val text-success" id="actual-total-savings">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;" id="actual-savings-pct">-- reduction</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon blue"><i class="fa-solid fa-chart-line"></i></div>
+      <div>
+        <div class="metric-label">Total Predicted Savings</div>
+        <div class="metric-val text-info" id="pred-total-savings">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;" id="pred-savings-pct">-- reduction</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon red"><i class="fa-solid fa-file-invoice"></i></div>
+      <div>
+        <div class="metric-label">Optimized Monthly Bill</div>
+        <div class="metric-val text-light" id="optimized-bill">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">After slab savings</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Savings Breakdown Table -->
+<!-- Itemized Optimization Strategies with Reference to Actual & Predicted -->
+<div class="card-glass mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="fa-solid fa-layer-group text-cyan me-2"></i>Quantified Savings by Strategy (Actual vs. Predicted)</h5>
+    <span class="badge bg-success-subtle text-success border border-success-subtle">Calculated at Indian Slab Rates</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark-custom table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Optimization Strategy</th>
+          <th>Mechanism</th>
+          <th class="text-cyan">Actual kWh Saved</th>
+          <th class="text-success">Actual Monthly Savings (₹)</th>
+          <th class="text-purple">Predicted kWh Saved</th>
+          <th class="text-info">Predicted Monthly Savings (₹)</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-strategies">
+        <tr><td colspan="6" class="text-center text-muted">Calculating strategy breakdowns...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Standard Percentage Scenarios -->
 <div class="card-glass">
-  <h5 class="mb-3"><i class="fa-solid fa-table text-cyan me-2"></i>Energy Reduction Scenarios & Currency Savings</h5>
+  <h5 class="mb-3"><i class="fa-solid fa-percent text-purple me-2"></i>Target Reduction Scenarios (Actual Baseline vs. Predicted Baseline)</h5>
   <div class="table-responsive">
     <table class="table table-dark-custom table-hover align-middle">
       <thead>
         <tr>
           <th>Reduction Target</th>
-          <th>Monthly kWh Saved</th>
-          <th>Yearly kWh Saved</th>
-          <th>Monthly Currency Saved</th>
-          <th>Yearly Currency Saved</th>
-          <th>New Monthly Bill</th>
+          <th class="text-cyan">Actual Monthly Savings</th>
+          <th class="text-cyan">Actual Yearly Savings</th>
+          <th class="text-cyan">New Bill (Actuals)</th>
+          <th class="text-purple">Predicted Monthly Savings</th>
+          <th class="text-purple">Predicted Yearly Savings</th>
+          <th class="text-purple">New Bill (Predicted)</th>
         </tr>
       </thead>
       <tbody id="tbody-savings-scenarios">
-        <tr><td colspan="6" class="text-center text-muted">Calculating financial scenarios...</td></tr>
+        <tr><td colspan="7" class="text-center text-muted">Calculating financial scenarios...</td></tr>
       </tbody>
     </table>
   </div>
@@ -109,53 +180,80 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  calculateSavings();
-
-  document.getElementById('form-savings').addEventListener('submit', function(e) {
-    e.preventDefault();
-    calculateSavings();
-  });
+  loadSavingsData();
 });
 
-function calculateSavings() {
-  const kwh = document.getElementById('input-kwh').value;
-  const tariff = document.getElementById('input-tariff').value || 0.15;
-  const currency = document.getElementById('input-currency').value || '$';
-
-  const payload = {
-    monthly_kWh: kwh ? parseFloat(kwh) : null,
-    tariff_rate: parseFloat(tariff),
-    currency_symbol: currency
-  };
-
+function loadSavingsData() {
   fetch('/api/calculate-savings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ tariff_rate: 0, currency_symbol: '₹' })
   })
   .then(r => r.json())
   .then(res => {
     if (res.status === 'success') {
       const d = res.data;
-      const cur = d.current_estimates;
-      const symbol = d.input.currency_symbol;
+      const act = d.actual_metrics;
+      const pred = d.predicted_metrics;
+      const v = d.variance;
+      const symbol = '₹';
 
-      document.getElementById('cost-monthly').innerText = cur.formatted_monthly_cost;
-      document.getElementById('cost-yearly').innerText = cur.formatted_yearly_cost;
-      document.getElementById('cost-tou').innerText = symbol + cur.tou_monthly_cost.toLocaleString();
+      // Update Metric Cards
+      document.getElementById('actual-monthly-cost').innerText = symbol + act.flat_monthly_cost.toLocaleString();
+      document.getElementById('actual-monthly-kwh').innerText = act.monthly_kWh.toLocaleString() + ' kWh recorded';
 
+      document.getElementById('pred-monthly-cost').innerText = symbol + pred.flat_monthly_cost.toLocaleString();
+      document.getElementById('pred-monthly-kwh').innerText = pred.monthly_kWh.toLocaleString() + ' kWh forecasted';
+
+      const diffSign = v.cost_difference >= 0 ? '+' : '';
+      document.getElementById('variance-cost').innerText = diffSign + symbol + v.cost_difference.toLocaleString();
+      document.getElementById('variance-pct').innerText = `${diffSign}${v.percent_difference}% forecast variance`;
+
+      document.getElementById('actual-total-savings').innerText = symbol + act.total_savings_monthly.toLocaleString() + '/mo';
+      document.getElementById('actual-savings-pct').innerText = `${act.savings_pct}% total reduction`;
+
+      document.getElementById('pred-total-savings').innerText = symbol + pred.total_savings_monthly.toLocaleString() + '/mo';
+      document.getElementById('pred-savings-pct').innerText = `${pred.savings_pct}% projected reduction`;
+
+      document.getElementById('optimized-bill').innerText = symbol + act.optimized_monthly_cost.toLocaleString() + '/mo';
+
+      // Populate Strategies Table
+      const stratTbody = document.getElementById('tbody-strategies');
+      let stratRows = d.strategies.map(s => `
+        <tr>
+          <td class="fw-semibold text-light">${s.strategy}</td>
+          <td class="text-muted small">${s.description}</td>
+          <td class="text-cyan">${s.actual_kwh_saved} kWh</td>
+          <td class="fw-bold text-success">${symbol}${s.actual_savings_monthly.toLocaleString()}</td>
+          <td class="text-purple">${s.predicted_kwh_saved} kWh</td>
+          <td class="fw-bold text-info">${symbol}${s.predicted_savings_monthly.toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+      // Add Total Combined row
+      stratRows += `
+        <tr class="table-active border-top border-secondary fw-bold">
+          <td colspan="2" class="text-light fs-6"><i class="fa-solid fa-circle-check text-success me-2"></i>Total Quantified Savings</td>
+          <td class="text-cyan fs-6">${act.total_kwh_saved_monthly} kWh/mo</td>
+          <td class="text-success fs-6">${symbol}${act.total_savings_monthly.toLocaleString()} / mo<br><span class="badge bg-success-subtle text-success small">${symbol}${act.total_savings_yearly.toLocaleString()} / yr</span></td>
+          <td class="text-purple fs-6">${pred.total_kwh_saved_monthly} kWh/mo</td>
+          <td class="text-info fs-6">${symbol}${pred.total_savings_monthly.toLocaleString()} / mo<br><span class="badge bg-info-subtle text-info small">${symbol}${pred.total_savings_yearly.toLocaleString()} / yr</span></td>
+        </tr>
+      `;
+      stratTbody.innerHTML = stratRows;
+
+      // Populate Percentage Scenarios Table
       const scens = d.savings_scenarios;
-      document.getElementById('cost-saved-15').innerText = scens[2].formatted_saved_monthly;
-
       const tbody = document.getElementById('tbody-savings-scenarios');
       tbody.innerHTML = scens.map(s => `
         <tr>
-          <td><span class="badge badge-medium fs-6">${s.percentage}% Reduction</span></td>
-          <td class="fw-semibold text-light">${s.saved_kwh_monthly} kWh</td>
-          <td class="text-muted">${s.saved_kwh_yearly} kWh</td>
-          <td class="fw-bold text-success fs-6">${s.formatted_saved_monthly}</td>
-          <td class="fw-bold text-cyan">${s.formatted_saved_yearly}</td>
-          <td class="fw-semibold text-light">${symbol}${s.new_monthly_cost.toLocaleString()}</td>
+          <td><span class="badge badge-medium fs-6">${s.percentage}% Target</span></td>
+          <td class="fw-bold text-success">${symbol}${s.actual_saved_cost_monthly.toLocaleString()}/mo</td>
+          <td class="text-cyan">${symbol}${s.actual_saved_cost_yearly.toLocaleString()}/yr</td>
+          <td class="fw-semibold text-light">${symbol}${s.actual_new_monthly_cost.toLocaleString()}</td>
+          <td class="fw-bold text-info">${symbol}${s.predicted_saved_cost_monthly.toLocaleString()}/mo</td>
+          <td class="text-purple">${symbol}${s.predicted_saved_cost_yearly.toLocaleString()}/yr</td>
+          <td class="fw-semibold text-light">${symbol}${s.predicted_new_monthly_cost.toLocaleString()}</td>
         </tr>
       `).join('');
     }
@@ -163,3 +261,4 @@ function calculateSavings() {
 }
 </script>
 {% endblock %}
+
