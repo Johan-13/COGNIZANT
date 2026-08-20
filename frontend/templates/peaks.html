@@ -11,7 +11,7 @@
       Peak Load Analysis &amp; Load Shifting
     </h1>
     <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1 max-w-2xl">
-      Demand-side mathematical load shifting optimization to flatten peak demand, reduce Peak-to-Average Ratio (PAR), and lower energy costs.
+      Demand-side mathematical load shifting optimization to reschedule flexible appliances, reduce grid stress, and lower electricity costs.
     </p>
   </div>
   <div class="flex items-center gap-3">
@@ -25,7 +25,7 @@
 <!-- Peak Load KPI Cards (4 Cards) -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <!-- Card 1: Evening Peak Window -->
-  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Evening Peak Window</span>
       <div class="w-8 h-8 rounded-full bg-error/20 flex items-center justify-center text-error border border-error/30">
@@ -39,7 +39,7 @@
   </div>
 
   <!-- Card 2: Peak-to-Average Ratio (PAR) -->
-  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">PAR Optimization</span>
       <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
@@ -52,12 +52,12 @@
         <span class="material-symbols-outlined text-sm text-secondary">arrow_forward</span>
         <span id="kpi-par-opt" class="text-secondary">1.28x</span>
       </div>
-      <div class="font-label-sm text-label-sm text-secondary text-xs" id="kpi-par-diff">-29.7% Grid Stress</div>
+      <div class="font-label-sm text-label-sm text-secondary text-xs font-semibold" id="kpi-par-diff">-29.7% Grid Stress</div>
     </div>
   </div>
 
   <!-- Card 3: Overnight Off-Peak Baseline -->
-  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Off-Peak Baseline</span>
       <div class="w-8 h-8 rounded-full bg-[#E2FBCE]/20 flex items-center justify-center text-[#E2FBCE] border border-[#E2FBCE]/30">
@@ -71,7 +71,7 @@
   </div>
 
   <!-- Card 4: Monthly Shifting Savings -->
-  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px]">
+  <div class="glass-card rounded-xl p-4 flex flex-col justify-between h-[120px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Potential Shift Savings</span>
       <div class="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-secondary border border-secondary/30">
@@ -85,38 +85,31 @@
   </div>
 </div>
 
-<!-- Main Load Shifting Comparison Chart Card -->
-<div class="glass-card rounded-xl p-6 h-[440px] flex flex-col relative overflow-hidden mb-6 border border-white/10">
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+<!-- Strategy Summary Banner -->
+<div class="glass-card rounded-xl p-5 mb-6 border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+  <div class="flex items-center gap-3.5">
+    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 flex-shrink-0">
+      <span class="material-symbols-outlined text-xl">insights</span>
+    </div>
     <div>
-      <h3 class="font-headline-lg text-headline-lg text-[#FFF8D2] flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary">ssid_chart</span>
-        Diurnal Load Shifting: Original vs. Optimized Demand Curve
-      </h3>
-      <p class="font-label-sm text-label-sm opacity-70">
-        Reduces evening peak demand and redistributes flexible load into off-peak overnight hours
+      <h3 class="font-headline-sm text-headline-sm text-[#FFF8D2] font-semibold">Demand-Side Load Shifting Strategy</h3>
+      <p class="font-label-sm text-label-sm opacity-80 text-xs mt-0.5">
+        Target: Shift up to 40% of flexible appliance draw out of high-cost evening peak hours (17:00–22:00) into overnight base hours (00:00–05:00) to maximize progressive slab tariff savings.
       </p>
     </div>
-    <!-- Legend -->
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2">
-        <span class="w-3.5 h-3.5 rounded-full bg-error border border-error/50"></span>
-        <span class="font-label-sm text-label-sm text-on-surface-variant">Original Diurnal Load</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="w-3.5 h-3.5 rounded-full bg-primary border border-primary/50"></span>
-        <span class="font-label-sm text-label-sm text-primary font-bold">Optimized Load Curve</span>
-      </div>
-    </div>
   </div>
-  <!-- Plotly Container -->
-  <div class="relative w-full flex-grow">
-    <div id="chart-diurnal" style="width: 100%; height: 340px;"></div>
+  <div class="flex items-center gap-3 flex-shrink-0">
+    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-primary/15 text-primary border border-primary/30">
+      Peak Tariff: ₹8.50/kWh
+    </span>
+    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-secondary/15 text-secondary border border-secondary/30">
+      Off-Peak: ₹3.35/kWh
+    </span>
   </div>
 </div>
 
-<!-- Bottom Row: Top Peak Hours & Appliance Dispatch Matrix -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Tables Grid: Top Peak Hours & Appliance Dispatch Matrix -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
   <!-- Card 1: Top Peak Hours Table -->
   <div class="glass-card rounded-xl p-6 overflow-hidden flex flex-col border border-white/10">
     <div class="flex justify-between items-center mb-4">
@@ -126,9 +119,9 @@
       </h3>
       <span class="font-label-sm text-label-sm text-on-surface-variant">Sorted by Mean Draw</span>
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto max-h-[440px]">
       <table class="w-full text-left border-collapse">
-        <thead class="border-b border-white/10">
+        <thead class="sticky top-0 bg-[#06231D]/95 backdrop-blur-md border-b border-white/10">
           <tr>
             <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Hour Window</th>
             <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Average Draw</th>
@@ -151,11 +144,11 @@
         <span class="material-symbols-outlined text-secondary">schedule</span>
         <span>Flexible Appliance Rescheduling Dispatch</span>
       </h3>
-      <span class="font-label-sm text-label-sm text-secondary font-semibold">Demand Response</span>
+      <span class="font-label-sm text-label-sm text-secondary font-semibold">Automated Dispatch</span>
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto max-h-[440px]">
       <table class="w-full text-left border-collapse">
-        <thead class="border-b border-white/10">
+        <thead class="sticky top-0 bg-[#06231D]/95 backdrop-blur-md border-b border-white/10">
           <tr>
             <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Appliance / Load</th>
             <th class="py-3 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current Runtime</th>
@@ -180,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(res => {
       if (res.status === 'success') {
         const d = res.data;
-        const hourly = d.hourly_averages || d.hourly_breakdown || [];
         const opt = d.optimization_metrics || {};
         const periods = d.period_averages || {};
 
@@ -201,76 +193,15 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('kpi-shift-kwh').innerText = `${opt.monthly_shiftable_kWh} kWh shifted / mo`;
         }
 
-        // 2. Render Diurnal Before vs After Plot
-        renderDiurnalChart(hourly);
-
-        // 3. Render Top Peak Hours Table
+        // 2. Render Top Peak Hours Table
         renderPeaksTable(d.top_peak_hours);
 
-        // 4. Render Appliance Schedules
+        // 3. Render Appliance Schedules
         renderApplianceTable(d.appliance_schedules);
       }
     })
     .catch(e => console.error('Peaks load error:', e));
 });
-
-function renderDiurnalChart(hourly) {
-  if (!hourly || hourly.length === 0) return;
-  const hours = hourly.map(h => h.HourLabel || `${String(h.Hour).padStart(2, '0')}:00`);
-  const origVals = hourly.map(h => h.Energy_kWh_mean !== undefined ? h.Energy_kWh_mean : h.Energy_kWh);
-  const optVals = hourly.map(h => h.Optimized_kWh !== undefined ? h.Optimized_kWh : h.Energy_kWh_mean);
-
-  // Original curve (Red/Orange line)
-  const traceOriginal = {
-    x: hours,
-    y: origVals,
-    name: 'Original Demand',
-    type: 'scatter',
-    mode: 'lines+markers',
-    line: { color: '#ffb4ab', width: 2.5, dash: 'dot', shape: 'spline' },
-    marker: { size: 5, color: '#ffb4ab' },
-    hoverinfo: 'x+y'
-  };
-
-  // Optimized curve (Vibrant Lime/Mint line with fill)
-  const traceOptimized = {
-    x: hours,
-    y: optVals,
-    name: 'Optimized (After Shift)',
-    type: 'scatter',
-    mode: 'lines+markers',
-    line: { color: '#E3EF26', width: 3.5, shape: 'spline' },
-    marker: { size: 6, color: '#E3EF26' },
-    fill: 'tozeroy',
-    fillcolor: 'rgba(227, 239, 38, 0.12)',
-    hoverinfo: 'x+y'
-  };
-
-  const layout = {
-    autosize: true,
-    paper_bgcolor: 'transparent',
-    plot_bgcolor: 'transparent',
-    margin: { l: 45, r: 20, t: 15, b: 35 },
-    font: { color: '#FFF8D2', family: 'Sora, sans-serif', size: 12 },
-    xaxis: {
-      gridcolor: 'rgba(255, 255, 255, 0.05)',
-      tickfont: { color: '#FFF8D2', size: 11 },
-      showline: true,
-      linecolor: 'rgba(255, 255, 255, 0.1)',
-      title: 'Hour of Day (24-Hour Cycle)'
-    },
-    yaxis: {
-      gridcolor: 'rgba(255, 255, 255, 0.05)',
-      tickfont: { color: '#FFF8D2', size: 11 },
-      showline: true,
-      linecolor: 'rgba(255, 255, 255, 0.1)',
-      title: 'Mean Power Load (kWh)'
-    },
-    showlegend: false
-  };
-
-  Plotly.newPlot('chart-diurnal', [traceOriginal, traceOptimized], layout, { responsive: true, displayModeBar: false });
-}
 
 function renderPeaksTable(peaks) {
   const tbody = document.getElementById('tbody-peaks');
