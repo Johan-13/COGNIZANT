@@ -1,100 +1,119 @@
 # Smart Energy Consumption Optimizer
 
-An enterprise-grade, full-stack Data Science and Machine Learning Web Application built with **FastAPI**, **Facebook Prophet**, **Pandas**, **Scikit-learn**, and **Vanilla JavaScript / Chart.js**. The system analyzes building and household electricity usage patterns, forecasts future hourly energy consumption using time-series models with Weather and Occupancy feature engineering, identifies abnormal power spikes (anomalies), highlights peak usage hours, and provides rule-based energy-saving recommendations and financial tariff cost calculators.
+An enterprise-grade, full-stack Data Science and Machine Learning Web Application built with **FastAPI**, **Facebook Prophet**, **Pandas**, **Scikit-learn**, and **Vanilla JavaScript / Plotly.js / Chart.js**. The system analyzes building and household electricity usage patterns, syncs with real-world clock time in a continuous 1:1 live telemetry stream, forecasts future hourly energy consumption using multi-step additive seasonality models with Weather & Occupancy regressors, detects abnormal consumption spikes (anomalies), and computes financial savings using an authentic **Indian Rupee (₹) Telescopic Slab Tariff Engine**.
 
 ---
 
 ## 🌟 Key Features
 
-1. **Data Preprocessing & Fast Caching**
-   - Ingests raw UCI minute-level household electricity consumption data.
-   - Automatically handles missing values using time-aware interpolation.
-   - Resamples data into hourly aggregates and caches preprocessed data in `backend/app/data/processed_power_consumption.csv` for sub-second API responses.
-   - Auto-generates a realistic 1-year synthetic dataset if the raw dataset file is not present.
+### 1. ⏱️ Real-Time 1:1 Live Data Streaming & Clock Synchronization
+- **Real-World Clock Sync:** When the application starts, it computes any missing time intervals and automatically generates historical data up to the **current real-world hour** (`catch_up_to_now()`).
+- **Continuous 1:1 Streaming Worker:** A background daemon thread records 1 new data hour for every 3,600 seconds (1 real-world hour) of elapsed time with synchronized ambient temperature, humidity, and occupancy telemetry.
+- **Live Stream Endpoints & Dashboard Watcher:** Provides `/api/stream/status` and `/api/stream/latest` for real-time monitoring and a client-side streaming watcher bar.
 
-2. **Exploratory Data Analysis & Visual Profiling**
-   - Total, daily, and hourly energy metrics.
-   - Interactive consumption time-series charts (Daily 90d, Hourly 7d, Weekly 1y).
-   - Hourly distribution profiles (00:00 – 23:00) and Day-of-Week radar charts with Weather and Occupancy correlation.
+### 2. 🔮 Facebook Prophet Time-Series Forecasting
+- **Additive Seasonality with Exogenous Regressors:** Incorporates daily Fourier seasonality, ambient temperature regressors, 3-tier occupancy schedules, and 24-hour autoregressive lag features (`lag_24`).
+- **Continuous In-Sample Fit & 95% Uncertainty Bounds:** Generates continuous historical model fits alongside future predictions with full 95% confidence intervals (`yhat_lower`, `yhat_upper`).
+- **Overnight Baseload Floor Calibration:** Calibrated baseload protection preventing negative or unrealistic overnight consumption drops.
+- **Accuracy Benchmarking:** Evaluates against a Naive 24-hour Lag Seasonal Baseline across **MAE**, **RMSE**, and **MAPE** with automated improvement quantification.
+- **On-Demand Retraining:** REST API trigger (`POST /api/retrain`) to retrain and persist updated model binaries.
 
-3. **Time-Series Forecasting (Facebook Prophet)**
-   - Prophet model with additive daily/weekly seasonality, ambient temperature regressors, and occupancy ratio regressors.
-   - User-selectable forecast horizons (24 hours, 48 hours, 72 hours, 7 days).
-   - Evaluation metrics: **MAE**, **RMSE**, **MAPE**.
-   - Naive baseline model comparison (24-hour lag predictor) and quantifiable accuracy improvements.
-   - On-demand model retraining via REST API (`POST /api/retrain`).
+### 3. 🇮🇳 Indian Rupee (₹) Progressive Slab Tariff Engine
+- **Telescopic Slab Structure:**
+  | Slab Bracket | Rate per Unit (kWh) |
+  |---|---|
+  | **0 – 50 Units** | **₹3.35** / kWh |
+  | **51 – 100 Units** | **₹4.25** / kWh |
+  | **101 – 150 Units** | **₹5.35** / kWh |
+  | **151 – 200 Units** | **₹7.20** / kWh |
+  | **201 – 250 Units** | **₹8.50** / kWh |
+  | **> 250 Units** | **₹8.50** / kWh |
+- **Actual vs. Predicted Referenced Savings:** Directly quantifies financial savings against both recorded historical consumption and Prophet forecasted demands.
+- **Itemized Energy Reduction Strategies:**
+  - Peak Load Shifting (18:00 – 22:00)
+  - Occupancy Setback Automation
+  - Standby & Vampire Load Elimination (01:00 – 05:00)
+  - Weather-Adaptive Thermal Pre-Cooling
 
-4. **Statistical Anomaly Detection**
-   - Detects abnormal electricity consumption spikes using 24-hour rolling Z-Score statistics ($Z = \frac{X - \mu}{\sigma}$).
-   - Configurable sensitivity thresholds ($Z \ge 1.0 - 5.0$).
-   - Categorizes anomaly events by severity: **Low**, **Medium**, **High**, **Critical**.
-   - Generates contextual root-cause explanations (e.g., HVAC load during low occupancy, overnight power leaks, weekend demand stacks).
+### 4. 🚨 Statistical Anomaly Detection
+- Detects consumption spikes using **24-hour Rolling Z-Score** statistics ($Z = \frac{X - \mu}{\sigma}$).
+- Configurable sensitivity thresholds ($Z \ge 1.0 - 5.0$).
+- Categorizes anomalies by severity: **Low**, **Medium**, **High**, **Critical**.
+- Generates automated contextual root causes (e.g., HVAC over-cycling, off-hours power leaks, weekend load stacking).
 
-5. **Peak Usage Window Identification**
-   - Identifies top peak consumption hours and delta percentages above household baseline.
-   - Categorizes period averages: Morning Peak (07-10), Evening Peak (17-22), Overnight Baseline (00-05).
-   - Quantifies load shifting potential (kWh/day) from peak hours to off-peak overnight hours.
-
-6. **Energy Saving Recommendation Engine**
-   - Rule-based optimization system offering advice on peak load shifting, occupancy automation, phantom standby reduction, and thermal pre-cooling.
-   - Quantifies monthly kWh savings for each recommendation.
-
-7. **Financial Cost & Tariff Calculator**
-   - Customizable electricity tariff rate ($/kWh) and monthly consumption inputs.
-   - Projects monthly and annual flat and Time-Of-Use (TOU) electricity costs.
-   - Provides scenario projections for 5%, 10%, 15%, 20%, and 25% energy reduction goals.
+### 5. ⚡ Peak Usage Window & Load-Shifting Profiling
+- Classifies diurnal operating windows: Morning Peak (07:00 – 10:00), Evening Peak (17:00 – 22:00), Overnight Baseline (00:00 – 05:00).
+- Calculates load-shifting potential (kWh/day) from peak hours to off-peak tariff periods.
 
 ---
 
-## 🏗️ Project Architecture
+## 🖥️ Page Layout & UI Architecture
 
-The codebase follows a clean, modular, deployment-ready architecture with strict separation between backend services, frontend assets, tests, and deployment orchestration:
+### 📊 1. Overview Dashboard (`/dashboard`)
+- **Top Main Centerpiece:** Full-width **Prophet Predicted Energy Demand & 95% Confidence Bounds** chart with continuous historical cyan curve, purple Prophet model fit, 95% shaded confidence ribbon, and vertical *"Now / Forecast Start"* marker.
+- **Bottom Section:** Compact **Historical Energy Consumption & Telemetry** (height: 260px) with interactive time-aggregation buttons (Daily 90d / Hourly Recent / Weekly) and optional live telemetry watcher.
+- **Metric Cards:** Real-time summary cards for Total Consumption, Daily Average, Temperature, Occupancy, Anomalies Count, and Monthly Potential Savings in **₹ INR**.
+
+### 📋 2. Hourly Predictions Stream (`/forecast`)
+- **Top Summary Aggregations:** **Forecast Horizon Key Metrics & Summary** cards (Total Horizon Demand, Average Hourly Rate, Peak Forecast Demand, and Min Off-Peak Demand).
+- **Interactive Horizon Switcher:** Next 24 Hours, Next 48 Hours, Next 72 Hours, Next 7 Days (168h).
+- **Search & Filter:** Instant table query filtering by timestamp, hour, or occupancy tier.
+- **CSV Data Export:** One-click CSV download of active stream predictions with exogenous regressors.
+- **Model Evaluation:** Prophet vs. Naive Baseline MAPE, RMSE, and improvement percentage.
+
+### 💰 3. Cost & Savings Optimization Engine (`/savings`)
+- Displays active Indian Slab Tariff rate cards.
+- Compares Actual Monthly Cost vs. Predicted Monthly Cost and variance in **₹ INR**.
+- Itemized breakdown table for each optimization strategy.
+- Target reduction scenario matrices (5% to 25% targets) calculated at progressive slab rates.
+
+---
+
+## 🏗️ Project Structure
 
 ```
 smart-energy-optimizer/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
-│   │   ├── main.py                     # FastAPI Application Server & Route Endpoints
-│   │   ├── core/                       # App Configuration & Dynamic Path Resolution
+│   │   ├── main.py                     # FastAPI server, route handlers & hourly streaming worker
+│   │   ├── core/                       # App configuration & dynamic path resolution
 │   │   │   ├── __init__.py
 │   │   │   └── config.py               # Centralized settings & environment variables
-│   │   ├── services/                   # ML & Domain Logic Services
+│   │   ├── services/                   # ML & Domain logic services
 │   │   │   ├── __init__.py
 │   │   │   ├── analysis.py             # EDA aggregations & profiling
 │   │   │   ├── anomaly_detection.py    # Rolling Z-score anomaly detector
-│   │   │   ├── forecasting.py          # Prophet time-series engine
+│   │   │   ├── forecasting.py          # Prophet time-series engine with in-sample overlay
 │   │   │   ├── peak_analysis.py        # Peak load & load shifting analysis
-│   │   │   ├── preprocessing.py        # Data ingestion, cleaning & feature engineering
-│   │   │   └── savings.py              # Recommendation engine & tariff calculator
+│   │   │   ├── preprocessing.py        # Data ingestion, cleaning & synthetic generation
+│   │   │   ├── savings.py              # Indian slab tariff engine & itemized savings
+│   │   │   └── streamer.py             # 1:1 real-world clock catch-up & streaming engine
 │   │   ├── models/                     # Trained ML model binaries & metadata
 │   │   │   ├── forecasting_meta.json
-│   │   │   ├── ml_forecast_model.pkl
-│   │   │   ├── prophet_model.pkl
-│   │   │   └── sarima_model.pkl
-│   │   └── data/                       # Raw & processed consumption datasets
-│   │       ├── sample_power_consumption.txt
+│   │   │   └── prophet_model.pkl
+│   │   └── data/                       # Processed power consumption dataset
 │   │       └── processed_power_consumption.csv
-│   ├── tests/                          # Automated Pytest Suite
+│   ├── tests/                          # Automated Pytest suite (13 tests)
 │   │   ├── __init__.py
 │   │   ├── conftest.py                 # Test fixtures & configuration
 │   │   ├── test_fastapi_prophet.py     # FastAPI API integration tests
 │   │   ├── test_preprocessing.py       # Data pipeline unit tests
 │   │   ├── test_forecasting.py         # Forecasting engine unit tests
 │   │   ├── test_anomaly.py             # Anomaly detection unit tests
-│   │   └── test_savings.py             # Tariff calculation tests
+│   │   └── test_savings.py             # Indian slab tariff & savings tests
 │   ├── requirements.txt                # Python backend dependencies
 │   └── Dockerfile                      # Backend container definition
 │
 ├── frontend/
 │   ├── templates/                      # Jinja2 HTML Templates
-│   │   ├── base.html                   # Master layout with sidebar
-│   │   ├── dashboard.html              # Main overview dashboard
-│   │   ├── forecast.html               # Time-series forecast & horizon selector
-│   │   ├── anomalies.html              # Anomaly logs & severity breakdown
+│   │   ├── base.html                   # Master layout with navigation sidebar
+│   │   ├── dashboard.html              # Main dashboard with Prophet top plot & compact telemetry
+│   │   ├── forecast.html               # Hourly Predictions Stream centerpiece & metrics
+│   │   ├── anomalies.html              # Anomaly detection logs & threshold tuning
 │   │   ├── peaks.html                  # Peak usage breakdown & load shifting
-│   │   ├── recommendations.html        # Energy saving tips
-│   │   └── savings.html                # Financial cost & savings calculator
+│   │   ├── recommendations.html        # Energy saving action cards
+│   │   └── savings.html                # Indian Rupee slab cost & savings calculator
 │   └── static/                         # Static UI assets
 │       ├── css/
 │       │   └── style.css               # Glassmorphism dark theme stylesheet
@@ -105,18 +124,16 @@ smart-energy-optimizer/
 │           └── savings.js              # Tariff calculator logic
 │
 ├── docker-compose.yml                  # Docker Compose orchestration
-├── Dockerfile                          # Root production multi-stage container
-├── .env.example                        # Environment variable template
-├── .gitignore                          # Git ignore specification
+├── Dockerfile                          # Root production container
 ├── run.py                              # Root application launcher
 └── README.md                           # Documentation
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Installation & Local Setup
 
-### 1. Create Virtual Environment
+### 1. Create and Activate Virtual Environment
 ```bash
 # Windows
 python -m venv venv
@@ -132,17 +149,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
-
-## 🚀 Running the Application
-
-### Option 1: Quick Root Launcher
+### 3. Run Application
 ```bash
+# Option A: Root Launcher
 python run.py
-```
 
-### Option 2: Using Uvicorn Directly
-```bash
+# Option B: Direct Uvicorn
 uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -153,36 +165,11 @@ http://localhost:8000
 
 ---
 
-## 🐳 Containerized Deployment (Docker & Docker Compose)
+## 🧪 Automated Testing
 
-### Using Docker Compose
+Run the full pytest suite to verify all 13 unit and integration tests:
 ```bash
-# Build and start the container
-docker-compose up --build -d
-
-# View logs
-docker-compose logs -f
-
-# Stop container
-docker-compose down
-```
-
-### Using Standard Docker
-```bash
-# Build image
-docker build -t smart-energy-optimizer .
-
-# Run container
-docker run -d -p 8000:8000 --name energy-optimizer smart-energy-optimizer
-```
-
----
-
-## 🧪 Running Automated Tests
-
-Run the full test suite with pytest:
-```bash
-pytest backend/tests/ -v
+pytest backend/tests -v
 ```
 
 ---
@@ -191,12 +178,18 @@ pytest backend/tests/ -v
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `GET /api/summary` | GET | Returns key dataset metrics, total kWh, peak hour, anomalies count, and baseline monthly cost. |
-| `GET /api/consumption` | GET | Returns consumption time series. Query params: `period=daily\|hourly\|weekly`, `limit=90`. |
-| `GET /api/hourly` | GET | Returns average consumption profiles by hour of day (0-23) and day of week. |
-| `GET /api/forecast` | GET | Returns Prophet predictions & metrics. Query params: `horizon=24\|48\|72\|168`, `retrain=true\|false`. |
-| `GET /api/anomalies` | GET | Returns flagged high-consumption anomaly events. Query param: `threshold=2.0`. |
+| `GET /api/summary` | GET | Returns key dataset metrics, total kWh, peak hour, anomaly count, and slab baseline cost. |
+| `GET /api/consumption` | GET | Returns consumption time series (`period=daily\|hourly\|weekly`, `limit=90`). |
+| `GET /api/forecast` | GET | Returns Prophet predictions, in-sample fitted history, 95% bounds (`horizon=24\|48\|72\|168`). |
+| `GET /api/stream/status` | GET | Returns real-time streaming status, latest recorded timestamp, and total records. |
+| `GET /api/stream/latest` | GET | Returns the most recent streaming record and current system time. |
+| `GET /api/anomalies` | GET | Returns flagged high-consumption anomaly events (`threshold=2.0`). |
 | `GET /api/peaks` | GET | Returns peak usage hours and load-shifting recommendations. |
 | `GET /api/recommendations` | GET | Returns rule-based energy saving recommendations and estimated kWh impact. |
-| `POST /api/calculate-savings` | POST | Calculates flat & TOU tariff costs and savings scenarios. Body: `{"tariff_rate": 0.15, "monthly_kWh": 500}`. |
-| `POST /api/retrain` | POST | Triggers Prophet model retraining and saves new model binaries into `backend/app/models/`. |
+| `POST /api/calculate-savings` | POST | Computes Indian Rupee (₹) slab costs, actual vs. predicted baseline, and itemized strategies. |
+| `POST /api/retrain` | POST | Triggers Prophet model retraining and updates model binaries. |
+
+---
+
+## 📄 License
+This project is open-source and available under the [MIT License](LICENSE).
