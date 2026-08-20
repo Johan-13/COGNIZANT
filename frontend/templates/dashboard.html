@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Smart Energy Consumption Optimizer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title"><i class="fa-solid fa-gauge-high text-cyan me-2"></i>Smart Energy Dashboard</h1>
+    <p class="page-subtitle mb-0">Real-time meter telemetry, weather/occupancy context, and Prophet AI forecasting</p>
+  </div>
+  <div>
+    <button id="btn-refresh" class="btn btn-outline-light btn-sm rounded-pill px-3">
+      <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Data
+    </button>
+  </div>
+</div>
+
+<!-- Metrics Cards Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4 col-xl-2">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon blue"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <div class="metric-label">Total Energy</div>
+        <div class="metric-val" id="metric-total-kwh">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">kWh recorded</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 col-xl-2">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon cyan"><i class="fa-solid fa-calendar-day"></i></div>
+      <div>
+        <div class="metric-label">Avg Daily Load</div>
+        <div class="metric-val" id="metric-avg-daily">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">kWh / day</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 col-xl-2">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon orange"><i class="fa-solid fa-temperature-high"></i></div>
+      <div>
+        <div class="metric-label">Avg Temp / Weather</div>
+        <div class="metric-val" id="metric-temp">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Ambient °C</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 col-xl-2">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon purple"><i class="fa-solid fa-users"></i></div>
+      <div>
+        <div class="metric-label">Avg Occupancy</div>
+        <div class="metric-val" id="metric-occ">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Occupancy ratio</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 col-xl-2">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div>
+        <div class="metric-label">Spike Anomalies</div>
+        <div class="metric-val" id="metric-anomalies">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Flagged events</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 col-xl-2">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon green"><i class="fa-solid fa-piggy-bank"></i></div>
+      <div>
+        <div class="metric-label">Savings Potential</div>
+        <div class="metric-val" id="metric-savings">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Estimated / mo</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Consumption Time Series Chart -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-glass">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fa-solid fa-chart-area text-cyan me-2"></i>Historical Energy Consumption & Telemetry</h5>
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-info active" data-period="daily">Daily</button>
+          <button type="button" class="btn btn-outline-info" data-period="hourly">Hourly (Recent)</button>
+          <button type="button" class="btn btn-outline-info" data-period="weekly">Weekly</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div id="chart-consumption" style="height: 380px; width: 100%;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Prophet Forecast & Profile Summary Row -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="card-glass h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fa-solid fa-wand-magic-sparkles text-purple me-2"></i>Prophet AI 24h Forecast Preview</h5>
+        <a href="/forecast" class="btn btn-sm btn-cyan rounded-pill">View Detailed Model <i class="fa-solid fa-arrow-right ms-1"></i></a>
+      </div>
+      <div class="chart-container">
+        <div id="chart-forecast-preview" style="height: 250px; width: 100%;"></div>
+      </div>
+      <div class="d-flex justify-content-around text-center mt-3 pt-2 border-top border-secondary-subtle">
+        <div>
+          <span class="text-muted small">Prophet MAPE</span>
+          <div class="fw-bold text-success fs-5" id="val-prophet-mape">--%</div>
+        </div>
+        <div>
+          <span class="text-muted small">Naive Baseline MAPE</span>
+          <div class="fw-bold text-danger fs-5" id="val-baseline-mape">--%</div>
+        </div>
+        <div>
+          <span class="text-muted small">MAPE Improvement</span>
+          <div class="fw-bold text-cyan fs-5" id="val-mape-diff">--%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card-glass h-100">
+      <h5 class="mb-3"><i class="fa-solid fa-clock text-orange me-2"></i>24-Hour Diurnal Demand Profile</h5>
+      <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+        <canvas id="chart-hourly-profile"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let hourlyChartInstance = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadDashboardSummary();
+  loadConsumptionChart('daily');
+  loadForecastPreview();
+  loadHourlyProfile();
+
+  document.querySelectorAll('[data-period]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      loadConsumptionChart(this.dataset.period);
+    });
+  });
+
+  document.getElementById('btn-refresh').addEventListener('click', function() {
+    loadDashboardSummary();
+    loadConsumptionChart('daily');
+    loadForecastPreview();
+    loadHourlyProfile();
+  });
+});
+
+function loadDashboardSummary() {
+  fetch('/api/summary')
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        const d = res.data;
+        document.getElementById('metric-total-kwh').innerText = d.total_consumption_kWh.toLocaleString() + ' kWh';
+        document.getElementById('metric-avg-daily').innerText = d.avg_daily_kWh + ' kWh';
+        document.getElementById('metric-temp').innerText = d.avg_temperature_C + ' °C';
+        document.getElementById('metric-occ').innerText = Math.round(d.avg_occupancy_ratio * 100) + ' %';
+        document.getElementById('metric-anomalies').innerText = d.anomaly_count;
+        document.getElementById('metric-savings').innerText = '$' + d.potential_monthly_savings.toFixed(2);
+      }
+    });
+}
+
+function loadConsumptionChart(period) {
+  fetch(`/api/consumption?period=${period}&limit=90`)
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        const data = res.data;
+        const x = data.map(d => d.Timestamp);
+        const yEnergy = data.map(d => d.Energy_kWh);
+        const yTemp = data.map(d => d.Temperature_C || null);
+
+        const traces = [
+          {
+            x: x,
+            y: yEnergy,
+            name: 'Energy (kWh)',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#06b6d4', width: 2.5 },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(6, 182, 212, 0.1)'
+          }
+        ];
+
+        if (yTemp[0] !== null) {
+          traces.push({
+            x: x,
+            y: yTemp,
+            name: 'Temperature (°C)',
+            type: 'scatter',
+            mode: 'lines',
+            yaxis: 'y2',
+            line: { color: '#f59e0b', width: 1.5, dash: 'dot' }
+          });
+        }
+
+        const layout = {
+          autosize: true,
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          margin: { l: 45, r: 45, t: 10, b: 40 },
+          font: { color: '#94a3b8', family: 'Inter' },
+          xaxis: { gridcolor: 'rgba(255,255,255,0.05)' },
+          yaxis: { title: 'Energy (kWh)', gridcolor: 'rgba(255,255,255,0.05)' },
+          yaxis2: { title: 'Temperature (°C)', overlaying: 'y', side: 'right', gridcolor: 'transparent' },
+          legend: { orientation: 'h', y: 1.12 }
+        };
+
+        Plotly.newPlot('chart-consumption', traces, layout, { responsive: true, displayModeBar: false });
+      }
+    });
+}
+
+function loadForecastPreview() {
+  fetch('/api/forecast?horizon=24')
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        const d = res.data;
+        const preds = d.predictions;
+        const meta = d.metadata;
+
+        document.getElementById('val-prophet-mape').innerText = meta.prophet_metrics.MAPE + ' %';
+        document.getElementById('val-baseline-mape').innerText = meta.baseline_metrics.MAPE + ' %';
+        document.getElementById('val-mape-diff').innerText = '-' + meta.mape_improvement_vs_baseline + ' %';
+
+        const x = preds.map(p => p.Timestamp.split(' ')[1]);
+        const yhat = preds.map(p => p.Forecast_kWh);
+        const yLower = preds.map(p => p.yhat_lower);
+        const yUpper = preds.map(p => p.yhat_upper);
+
+        const traceUpper = {
+          x: x, y: yUpper, type: 'scatter', mode: 'lines',
+          line: { color: 'transparent' }, showlegend: false
+        };
+        const traceLower = {
+          x: x, y: yLower, type: 'scatter', mode: 'lines',
+          fill: 'tonexty', fillcolor: 'rgba(139, 92, 246, 0.2)',
+          line: { color: 'transparent' }, name: '95% Confidence'
+        };
+        const traceHat = {
+          x: x, y: yhat, type: 'scatter', mode: 'lines+markers',
+          line: { color: '#8b5cf6', width: 3 }, name: 'Prophet Forecast'
+        };
+
+        const layout = {
+          autosize: true,
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          margin: { l: 40, r: 20, t: 10, b: 35 },
+          font: { color: '#94a3b8', family: 'Inter' },
+          xaxis: { gridcolor: 'rgba(255,255,255,0.05)' },
+          yaxis: { title: 'kWh', gridcolor: 'rgba(255,255,255,0.05)' },
+          legend: { orientation: 'h', y: 1.15 }
+        };
+
+        Plotly.newPlot('chart-forecast-preview', [traceUpper, traceLower, traceHat], layout, { responsive: true, displayModeBar: false });
+      }
+    });
+}
+
+function loadHourlyProfile() {
+  fetch('/api/hourly')
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        const prof = res.hourly_profile;
+        const labels = prof.map(p => p.Hour + ':00');
+        const data = prof.map(p => p.Energy_kWh_mean || p.mean || p.Energy_kWh);
+
+        if (hourlyChartInstance) {
+          hourlyChartInstance.destroy();
+        }
+
+        const ctx = document.getElementById('chart-hourly-profile').getContext('2d');
+        hourlyChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Avg Hourly kWh',
+              data: data,
+              backgroundColor: 'rgba(6, 182, 212, 0.6)',
+              borderColor: '#06b6d4',
+              borderWidth: 1,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+            }
+          }
+        });
+      }
+    });
+}
+</script>
+{% endblock %}

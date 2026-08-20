@@ -2,8 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
 # Distribution / packaging
@@ -26,7 +24,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
+# PyInstaller / Build tools
 *.manifest
 *.spec
 
@@ -58,12 +56,12 @@ env/
 ENV/
 env.bak/
 venv.bak/
-
-# Environment variables
 .env
 .venv
 
 # Large raw datasets (keep sample data)
+backend/app/data/household_power_consumption.txt
+backend/app/data/processed_power_consumption.csv
 data/household_power_consumption.txt
 data/processed_power_consumption.csv
 

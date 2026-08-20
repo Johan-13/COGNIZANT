@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Actionable Recommendations | Smart Energy Consumption Optimizer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title"><i class="fa-solid fa-lightbulb text-warning me-2"></i>Optimization Recommendations</h1>
+    <p class="page-subtitle mb-0">Targeted energy reduction strategies derived from data patterns, weather, and occupancy</p>
+  </div>
+  <div>
+    <button id="btn-refresh-recs" class="btn btn-outline-light btn-sm rounded-pill px-3">
+      <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Recommendations
+    </button>
+  </div>
+</div>
+
+<div class="row g-3" id="recommendations-container">
+  <div class="col-12 text-center text-muted py-5">
+    <div class="spinner-border text-cyan mb-2" role="status"></div>
+    <div>Loading energy saving recommendations...</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetchRecommendations();
+
+  document.getElementById('btn-refresh-recs').addEventListener('click', function() {
+    fetchRecommendations();
+  });
+});
+
+function fetchRecommendations() {
+  const container = document.getElementById('recommendations-container');
+  container.innerHTML = `
+    <div class="col-12 text-center text-muted py-5">
+      <div class="spinner-border text-cyan mb-2" role="status"></div>
+      <div>Loading energy saving recommendations...</div>
+    </div>
+  `;
+
+  fetch('/api/recommendations')
+    .then(r => {
+      if (!r.ok) throw new Error('API server returned error ' + r.status);
+      return r.json();
+    })
+    .then(res => {
+      if (res.status === 'success') {
+        const recs = res.data;
+        
+        if (!recs || recs.length === 0) {
+          container.innerHTML = '<div class="col-12 text-center text-muted py-5">No recommendations found at this time.</div>';
+          return;
+        }
+
+        container.innerHTML = recs.map(r => {
+          let impactClass = 'rec-impact-medium';
+          let badgeClass = 'badge-medium';
+          if (r.potential_impact === 'High') {
+            impactClass = 'rec-impact-high';
+            badgeClass = 'badge-high';
+          }
+
+          return `
+            <div class="col-md-6">
+              <div class="card-glass rec-card ${impactClass} h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge bg-secondary text-light">${escapeHtml(r.category)}</span>
+                  <span class="badge ${badgeClass}">${escapeHtml(r.potential_impact)} Impact</span>
+                </div>
+                <h5 class="text-light mb-2">${escapeHtml(r.title)}</h5>
+                <p class="text-muted small mb-3">${escapeHtml(r.description)}</p>
+                
+                <div class="p-2 rounded bg-dark border border-secondary mb-3">
+                  <span class="text-muted small"><i class="fa-solid fa-square-check text-cyan me-1"></i>Action Step:</span>
+                  <div class="text-light small fw-semibold">${escapeHtml(r.actionable_step)}</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top border-secondary-subtle">
+                  <span class="text-muted small">Est. Monthly Savings:</span>
+                  <span class="fw-bold text-success fs-6">${r.estimated_kwh_saving_monthly} kWh / mo</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        container.innerHTML = `<div class="col-12 alert alert-danger">Error: ${res.message || 'Failed to load'}</div>`;
+      }
+    })
+    .catch(err => {
+      container.innerHTML = `<div class="col-12 alert alert-danger">Network Error: ${err.message}</div>`;
+    });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+</script>
+{% endblock %}

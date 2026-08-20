@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Abnormal Usage Detection | Smart Energy Consumption Optimizer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title"><i class="fa-solid fa-triangle-exclamation text-red me-2"></i>Abnormal Usage & Anomaly Detection</h1>
+    <p class="page-subtitle mb-0">Rolling Z-score anomaly detection cross-referenced with Weather & Occupancy telemetry</p>
+  </div>
+  <div>
+    <select id="select-z-threshold" class="form-select form-select-sm bg-dark text-light border-secondary">
+      <option value="2.0" selected>Z-Threshold: 2.0 (Standard)</option>
+      <option value="2.5">Z-Threshold: 2.5 (Strict)</option>
+      <option value="3.0">Z-Threshold: 3.0 (Critical Spikes)</option>
+    </select>
+  </div>
+</div>
+
+<!-- Anomaly Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon red"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <div class="metric-label">Total Flagged Spikes</div>
+        <div class="metric-val" id="anom-total">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Abnormal events</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon orange"><i class="fa-solid fa-circle-exclamation"></i></div>
+      <div>
+        <div class="metric-label">Critical Spikes (Z ≥ 3.5)</div>
+        <div class="metric-val text-danger" id="anom-critical">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Requires audit</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon purple"><i class="fa-solid fa-chart-line-up"></i></div>
+      <div>
+        <div class="metric-label">Max Z-Score</div>
+        <div class="metric-val" id="anom-max-z">--</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Deviation multiplier</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-glass metric-card mb-0">
+      <div class="metric-icon cyan"><i class="fa-solid fa-temperature-arrow-up"></i></div>
+      <div>
+        <div class="metric-label">Weather/Occ Correlation</div>
+        <div class="metric-val text-cyan" id="anom-corr">High</div>
+        <div class="text-muted" style="font-size: 0.75rem;">Contextualized</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Anomalies Table -->
+<div class="card-glass">
+  <h5 class="mb-3"><i class="fa-solid fa-list text-red me-2"></i>Flagged Energy Consumption Anomaly Log</h5>
+  <div class="table-responsive">
+    <table class="table table-dark-custom table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Actual (kWh)</th>
+          <th>Expected Trend</th>
+          <th>Z-Score</th>
+          <th>Severity</th>
+          <th>Temp (°C)</th>
+          <th>Occupancy</th>
+          <th>Diagnostic Root Cause</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-anomalies">
+        <tr><td colspan="8" class="text-center text-muted">Loading anomaly logs...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  loadAnomalies(2.0);
+
+  document.getElementById('select-z-threshold').addEventListener('change', function() {
+    loadAnomalies(this.value);
+  });
+});
+
+function loadAnomalies(threshold) {
+  fetch(`/api/anomalies?threshold=${threshold}`)
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        const d = res.data;
+        const sum = d.summary;
+        const list = d.anomalies;
+
+        document.getElementById('anom-total').innerText = sum.total_anomalies;
+        document.getElementById('anom-critical').innerText = sum.critical_count;
+        document.getElementById('anom-max-z').innerText = sum.max_z_score;
+
+        const tbody = document.getElementById('tbody-anomalies');
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No anomalies detected at this threshold.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = list.map(a => {
+          let badgeClass = 'badge-low';
+          if (a.Severity === 'Critical') badgeClass = 'badge-critical';
+          else if (a.Severity === 'High') badgeClass = 'badge-high';
+          else if (a.Severity === 'Medium') badgeClass = 'badge-medium';
+
+          return `
+            <tr>
+              <td class="fw-semibold text-light">${a.Timestamp}</td>
+              <td class="fw-bold text-danger">${a.Actual_kWh} kWh</td>
+              <td class="text-muted">${a.Expected_kWh} kWh</td>
+              <td class="fw-semibold">${a.Z_Score}</td>
+              <td><span class="badge ${badgeClass}">${a.Severity}</span></td>
+              <td class="text-warning">${a.Temperature_C}°C</td>
+              <td class="text-info">${Math.round(a.Occupancy_Ratio * 100)}%</td>
+              <td class="small text-light">${a.Possible_Reason}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    });
+}
+</script>
+{% endblock %}
