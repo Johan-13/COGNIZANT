@@ -211,7 +211,17 @@ async def api_recommendations():
         anom_res = detect_anomalies(df)
         peak_res = analyze_peak_usage(df)
         recs = generate_recommendations(df, anomalies_summary=anom_res['summary'], peak_info=peak_res)
-        return {"status": "success", "data": recs}
+        total_kwh = round(sum(r.get('estimated_kwh_saving_monthly', 0) for r in recs), 1)
+        total_inr = round(sum(r.get('estimated_inr_saving_monthly', 0) for r in recs), 2)
+        return {
+            "status": "success",
+            "data": {
+                "recommendations": recs,
+                "total_estimated_monthly_saving_kwh": total_kwh,
+                "total_estimated_monthly_saving_inr": total_inr,
+                "annual_estimated_saving_inr": round(total_inr * 12, 2)
+            }
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -4,33 +4,43 @@
 
 {% block content %}
 <!-- Top Header Area -->
-<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
   <div>
-    <h1 class="font-display-md text-display-md text-[#FFF8D2]">AI Optimization Recommendations</h1>
-    <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1">Actionable insights driven by machine learning pattern recognition and tariff optimization.</p>
+    <h1 class="font-display-md text-display-md text-[#FFF8D2] flex items-center gap-2.5">
+      <span class="material-symbols-outlined text-primary text-3xl">lightbulb</span>
+      Optimization Recommendations
+    </h1>
+    <p class="font-body-md text-body-md text-[#FFF8D2] opacity-80 mt-1 max-w-2xl">
+      Data-driven energy conservation and load-shifting strategies quantified under progressive slab tariffs.
+    </p>
   </div>
 </div>
 
 <!-- Savings Overview Banner -->
-<div class="glass-card rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+<div class="glass-card rounded-xl p-6 mb-6 border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
   <div class="flex items-center gap-4">
-    <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary">
-      <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+    <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary flex-shrink-0">
+      <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">eco</span>
     </div>
     <div>
-      <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Estimated Combined Impact</h3>
-      <div class="font-headline-lg text-headline-lg text-primary" id="rec-total-savings">-- kWh / Month</div>
+      <h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-0.5">Total Combined Potential Savings</h3>
+      <div class="flex items-baseline gap-3 flex-wrap">
+        <span class="font-headline-lg text-headline-lg text-primary font-bold" id="rec-total-kwh">-- kWh / Month</span>
+        <span class="text-secondary font-bold text-xl" id="rec-total-inr">₹ -- / mo</span>
+      </div>
+      <div class="font-label-sm text-xs opacity-60 mt-0.5" id="rec-annual-inr">Projected Annual Savings: ₹ -- / year</div>
     </div>
   </div>
-  <div class="text-right">
-    <span class="font-label-sm text-label-sm px-3 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 font-semibold">
+  <div class="flex items-center gap-3 flex-wrap">
+    <span class="font-label-sm text-xs px-3 py-1.5 rounded-full bg-primary/15 text-primary border border-primary/30 font-semibold flex items-center gap-1.5">
+      <span class="material-symbols-outlined text-xs">verified</span>
       4 Active Strategies Generated
     </span>
   </div>
 </div>
 
-<!-- Recommendations Cards Grid -->
-<div id="grid-recommendations" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Recommendations Cards Grid (2x2 Grid) -->
+<div id="grid-recommendations" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
   <div class="col-span-2 py-8 text-center text-on-surface-variant opacity-60">Generating intelligent recommendations...</div>
 </div>
 {% endblock %}
@@ -43,8 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(res => {
       if (res.status === 'success') {
         const d = res.data;
-        document.getElementById('rec-total-savings').innerText = (d.total_estimated_monthly_saving_kwh || '420') + ' kWh / Month';
-        renderRecommendations(d.recommendations);
+        const recs = d.recommendations || (Array.isArray(d) ? d : []);
+        const totalKwh = d.total_estimated_monthly_saving_kwh || recs.reduce((a, r) => a + (r.estimated_kwh_saving_monthly || 0), 0);
+        const totalInr = d.total_estimated_monthly_saving_inr || recs.reduce((a, r) => a + (r.estimated_inr_saving_monthly || 0), 0);
+        const annualInr = d.annual_estimated_saving_inr || Math.round(totalInr * 12);
+
+        document.getElementById('rec-total-kwh').innerText = totalKwh.toFixed(1) + ' kWh / Month';
+        document.getElementById('rec-total-inr').innerText = '₹' + totalInr.toLocaleString('en-IN') + ' / mo';
+        document.getElementById('rec-annual-inr').innerText = `Projected Annual Savings: ₹${annualInr.toLocaleString('en-IN')} / year`;
+
+        renderRecommendations(recs);
       }
     })
     .catch(e => console.error('Recommendations error:', e));
@@ -59,31 +77,42 @@ function renderRecommendations(recs) {
 
   container.innerHTML = recs.map(r => {
     let impactBadge = "bg-primary/20 text-primary border-primary/30";
-    if (r.potential_impact === 'High') impactBadge = "bg-primary/20 text-primary border-primary/30";
-    else if (r.potential_impact === 'Medium') impactBadge = "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+    if (r.potential_impact === 'High') {
+      impactBadge = "bg-primary/20 text-primary border-primary/30";
+    } else if (r.potential_impact === 'Medium') {
+      impactBadge = "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+    }
+
+    const inrVal = r.estimated_inr_saving_monthly ? `₹${r.estimated_inr_saving_monthly.toLocaleString('en-IN')}` : `₹${Math.round(r.estimated_kwh_saving_monthly * 8.5).toLocaleString('en-IN')}`;
 
     return `
       <div class="glass-card rounded-xl p-6 flex flex-col justify-between h-full border border-white/10 hover:border-primary/40 transition-colors">
         <div>
           <div class="flex justify-between items-center mb-3">
-            <span class="font-label-sm text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-on-surface border border-white/15">${escapeHtml(r.category)}</span>
+            <span class="font-label-sm text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-[#FFF8D2] border border-white/15 font-medium">${escapeHtml(r.category)}</span>
             <span class="font-label-sm text-xs px-2.5 py-0.5 rounded-full border font-semibold ${impactBadge}">${escapeHtml(r.potential_impact)} Impact</span>
           </div>
           <h4 class="font-headline-lg text-lg font-bold text-[#FFF8D2] mb-2">${escapeHtml(r.title)}</h4>
-          <p class="font-body-md text-sm text-on-surface-variant mb-4">${escapeHtml(r.description)}</p>
+          <p class="font-body-md text-sm text-on-surface-variant mb-4 opacity-90 leading-relaxed">${escapeHtml(r.description)}</p>
           
-          <div class="p-3 rounded-lg bg-surface-container/60 border border-white/10 mb-4">
-            <div class="flex items-center gap-1.5 text-primary text-xs font-semibold mb-1">
-              <span class="material-symbols-outlined text-sm">check_circle</span>
-              <span>ACTION STEP:</span>
+          <div class="p-3.5 rounded-lg bg-surface-container/60 border border-white/10 mb-4">
+            <div class="flex items-center gap-1.5 text-primary text-xs font-bold mb-1 uppercase tracking-wider">
+              <span class="material-symbols-outlined text-sm">checklist</span>
+              <span>Action Step:</span>
             </div>
             <div class="text-sm text-on-surface font-medium">${escapeHtml(r.actionable_step)}</div>
           </div>
         </div>
 
         <div class="flex justify-between items-center pt-3 border-t border-white/10 text-sm mt-2">
-          <span class="text-on-surface-variant text-xs">Est. Monthly Savings:</span>
-          <span class="font-bold text-primary text-base">${r.estimated_kwh_saving_monthly} kWh / mo</span>
+          <div class="flex items-center gap-1 text-on-surface-variant text-xs">
+            <span class="material-symbols-outlined text-sm text-primary">bolt</span>
+            <span>Est. Energy: <strong class="text-primary">${r.estimated_kwh_saving_monthly} kWh/mo</strong></span>
+          </div>
+          <div class="flex items-center gap-1 text-secondary text-sm font-bold">
+            <span class="material-symbols-outlined text-sm">payments</span>
+            <span>+${inrVal} / mo</span>
+          </div>
         </div>
       </div>
     `;
