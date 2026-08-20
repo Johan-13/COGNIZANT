@@ -12,7 +12,7 @@
 <!-- Top KPI Summary Cards Row (6 Cards Grid) -->
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
   <!-- Card 1: Total Energy -->
-  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px]">
+  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Total Energy</span>
       <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
@@ -26,7 +26,7 @@
   </div>
 
   <!-- Card 2: Avg Daily Load -->
-  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px]">
+  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Avg Daily</span>
       <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
@@ -40,7 +40,7 @@
   </div>
 
   <!-- Card 3: Avg Temp -->
-  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px]">
+  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Avg Temp</span>
       <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
@@ -54,7 +54,7 @@
   </div>
 
   <!-- Card 4: Avg Occupancy -->
-  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px]">
+  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Occupancy</span>
       <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
@@ -68,7 +68,7 @@
   </div>
 
   <!-- Card 5: Anomalies -->
-  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px]">
+  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Anomalies</span>
       <div class="w-7 h-7 rounded-full bg-error/15 flex items-center justify-center">
@@ -82,19 +82,19 @@
   </div>
 
   <!-- Card 6: Savings Potential -->
-  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px]">
+  <div class="glass-card rounded-xl p-3.5 flex flex-col justify-between h-[115px] border border-white/10">
     <div class="flex justify-between items-start">
       <span class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Savings Pot.</span>
       <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-xs">payments</span>
       </div>
     </div>
-    <div class="font-headline-lg text-headline-lg text-primary flex items-baseline gap-1" id="val-savings">--</div>
+    <div class="font-headline-lg text-headline-lg text-primary flex items-baseline gap-1" id="val-savings">₹--</div>
   </div>
 </div>
 
-<!-- FIRST GRAPH (TOP & PROMINENT): Prophet Predicted Energy Demand & 95% Confidence Bounds -->
-<div class="glass-card rounded-xl p-6 mb-6 relative overflow-hidden flex flex-col">
+<!-- 1. FIRST GRAPH: Prophet Predicted Energy Demand & 95% Confidence Bounds -->
+<div class="glass-card rounded-xl p-6 mb-6 relative overflow-hidden flex flex-col border border-white/10">
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
     <div>
       <h2 class="font-headline-lg text-headline-lg text-[#FFF8D2] flex items-center gap-2">
@@ -107,10 +107,22 @@
         <div class="flex items-center gap-1.5"><span class="w-3 h-2 bg-primary/20 rounded-sm border border-primary/40"></span> <span>95% Confidence Interval</span></div>
       </div>
     </div>
-    <a href="/forecast" class="px-4 py-1.5 rounded-pill font-label-sm text-label-sm bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 transition-colors flex items-center gap-1">
-      <span>Detailed Forecast</span>
-      <span class="material-symbols-outlined text-sm">arrow_forward</span>
-    </a>
+    <div class="flex items-center gap-3">
+      <!-- Horizon Selector -->
+      <div class="glass-card rounded-lg px-3 py-1.5 flex items-center gap-2 cursor-pointer border border-white/10 hover:border-white/20 transition-colors">
+        <span class="material-symbols-outlined text-primary text-xs">calendar_month</span>
+        <select id="select-horizon" class="bg-transparent border-0 text-[#FFF8D2] font-label-sm text-label-sm focus:ring-0 cursor-pointer p-0 pr-2 outline-none">
+          <option value="24" class="bg-[#06231D] text-[#FFF8D2]" selected>Next 24 Hours</option>
+          <option value="48" class="bg-[#06231D] text-[#FFF8D2]">Next 48 Hours</option>
+          <option value="72" class="bg-[#06231D] text-[#FFF8D2]">Next 72 Hours</option>
+          <option value="168" class="bg-[#06231D] text-[#FFF8D2]">Next 7 Days (168h)</option>
+        </select>
+      </div>
+      <button id="btn-retrain" class="bg-primary text-[#06231D] font-label-sm text-label-sm px-4 py-1.5 rounded-lg font-bold hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-[0_0_15px_rgba(227,239,38,0.2)]">
+        <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">model_training</span>
+        <span id="btn-retrain-text">Retrain Model</span>
+      </button>
+    </div>
   </div>
 
   <!-- Prophet Chart Container (380px) -->
@@ -135,8 +147,115 @@
   </div>
 </div>
 
-<!-- SECOND GRAPH (BELOW IN SMALLER SIZE): Historical Energy Consumption & Telemetry -->
-<div class="glass-card rounded-xl p-5 mb-6 relative overflow-hidden flex flex-col">
+<!-- 2. PROPHET FORECAST KEY METRICS & AGGREGATIONS (4 Stat Cards) -->
+<div class="mb-6">
+  <div class="flex justify-between items-center mb-3">
+    <h3 class="font-headline-sm text-headline-sm text-[#FFF8D2] flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-lg">gauge</span>
+      Forecast Horizon Key Metrics &amp; Aggregations
+    </h3>
+    <span class="font-label-sm text-label-sm opacity-60">Calculated across selected forecast window</span>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- Stat 1: Total Demand -->
+    <div class="glass-card rounded-xl p-4 flex items-center gap-3.5 border border-white/10">
+      <div class="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center border border-primary/25 flex-shrink-0">
+        <span class="material-symbols-outlined text-primary text-xl">bolt</span>
+      </div>
+      <div>
+        <div class="font-label-sm text-label-sm text-[#FFF8D2] font-semibold">Total Horizon Demand</div>
+        <div class="font-headline-md text-headline-md text-primary font-bold" id="stat-total-kwh">-- kWh</div>
+        <div class="font-label-sm text-label-sm opacity-60 text-xs">Cumulative forecasted load</div>
+      </div>
+    </div>
+
+    <!-- Stat 2: Average Rate -->
+    <div class="glass-card rounded-xl p-4 flex items-center gap-3.5 border border-white/10">
+      <div class="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center border border-secondary/25 flex-shrink-0">
+        <span class="material-symbols-outlined text-secondary text-xl">show_chart</span>
+      </div>
+      <div>
+        <div class="font-label-sm text-label-sm text-[#FFF8D2] font-semibold">Average Hourly Rate</div>
+        <div class="font-headline-md text-headline-md text-secondary font-bold" id="stat-avg-kwh">-- kWh/h</div>
+        <div class="font-label-sm text-label-sm opacity-60 text-xs">Mean expected hourly draw</div>
+      </div>
+    </div>
+
+    <!-- Stat 3: Peak Demand -->
+    <div class="glass-card rounded-xl p-4 flex items-center gap-3.5 border border-white/10">
+      <div class="w-10 h-10 rounded-full bg-[#fbbf24]/15 flex items-center justify-center border border-[#fbbf24]/25 flex-shrink-0">
+        <span class="material-symbols-outlined text-[#fbbf24] text-xl">trending_up</span>
+      </div>
+      <div>
+        <div class="font-label-sm text-label-sm text-[#FFF8D2] font-semibold">Peak Forecast Demand</div>
+        <div class="font-headline-md text-headline-md text-[#fbbf24] font-bold" id="stat-peak-kwh">-- kWh</div>
+        <div class="font-label-sm text-label-sm opacity-60 text-xs">Maximum single hourly peak</div>
+      </div>
+    </div>
+
+    <!-- Stat 4: Min Demand -->
+    <div class="glass-card rounded-xl p-4 flex items-center gap-3.5 border border-white/10">
+      <div class="w-10 h-10 rounded-full bg-[#E2FBCE]/15 flex items-center justify-center border border-[#E2FBCE]/25 flex-shrink-0">
+        <span class="material-symbols-outlined text-[#E2FBCE] text-xl">trending_down</span>
+      </div>
+      <div>
+        <div class="font-label-sm text-label-sm text-[#FFF8D2] font-semibold">Min Off-Peak Demand</div>
+        <div class="font-headline-md text-headline-md text-[#E2FBCE] font-bold" id="stat-min-kwh">-- kWh</div>
+        <div class="font-label-sm text-label-sm opacity-60 text-xs">Resting overnight baseload</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. PROPHET HOURLY PREDICTIONS STREAM TABLE -->
+<div class="glass-card rounded-xl p-6 relative overflow-hidden flex flex-col mb-6 border border-white/10">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+    <div>
+      <h2 class="font-headline-lg text-headline-lg text-[#FFF8D2] flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">stream</span>
+        Active Hourly Predictions Stream
+      </h2>
+      <p class="font-label-sm text-label-sm opacity-70 mt-0.5">
+        Point forecasts with 95% Confidence Bounds (yhat_lower, yhat_upper) &amp; Exogenous Regressors
+      </p>
+    </div>
+    <div class="flex items-center gap-3 w-full sm:w-auto">
+      <!-- Search / Filter Input -->
+      <div class="relative flex-grow sm:w-64">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+        <input type="text" id="input-filter-stream" class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-1.5 font-label-sm text-label-sm text-[#FFF8D2] placeholder:text-on-surface-variant/60 focus:outline-none focus:border-primary/50" placeholder="Search hour, date, occupancy...">
+      </div>
+      <button id="btn-export-csv" class="glass-card rounded-lg px-3.5 py-1.5 text-primary font-label-sm text-label-sm border border-primary/30 hover:bg-primary/10 transition-colors flex items-center gap-1.5 flex-shrink-0">
+        <span class="material-symbols-outlined text-xs">download</span>
+        <span>Export CSV</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Container with Sticky Header -->
+  <div class="overflow-x-auto max-h-[480px] rounded-lg border border-white/5">
+    <table class="w-full text-left border-collapse">
+      <thead class="sticky top-0 bg-[#06231D]/95 backdrop-blur-md z-10 border-b border-white/10">
+        <tr>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">#</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Forecast Timestamp</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Prophet Forecast</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">95% Confidence Bounds</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Uncertainty</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Temperature</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Occupancy Tier</th>
+          <th class="py-3 px-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Daily Seasonality</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-forecast" class="font-body-md text-sm divide-y divide-white/5">
+        <tr><td colspan="8" class="py-8 text-center text-on-surface-variant opacity-60">Loading Prophet Predictions Stream...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4. HISTORICAL ENERGY CONSUMPTION & TELEMETRY (END OF PAGE) -->
+<div class="glass-card rounded-xl p-5 mb-6 relative overflow-hidden flex flex-col border border-white/10">
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
     <div>
       <h3 class="font-headline-md text-headline-md text-[#FFF8D2] flex items-center gap-2">
@@ -162,7 +281,7 @@
   </div>
 </div>
 
-<!-- Live Telemetry Stream Strip -->
+<!-- 5. LIVE TELEMETRY STREAM STATUS STRIP -->
 <div class="glass-card rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 border border-white/10">
   <div class="flex items-center gap-3">
     <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 text-primary">
@@ -184,10 +303,44 @@
 {% block scripts %}
 <script>
 let currentPeriod = 'daily';
+let currentForecastData = null;
+let allPredictions = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   loadDashboardData();
   initLiveWatcher();
+
+  const horizonSelect = document.getElementById('select-horizon');
+  horizonSelect?.addEventListener('change', () => {
+    loadForecastPreview(horizonSelect.value);
+  });
+
+  document.getElementById('input-filter-stream')?.addEventListener('input', function() {
+    filterTable(this.value);
+  });
+
+  document.getElementById('btn-export-csv')?.addEventListener('click', () => {
+    exportToCsv();
+  });
+
+  document.getElementById('btn-retrain')?.addEventListener('click', () => {
+    const btn = document.getElementById('btn-retrain');
+    const txt = document.getElementById('btn-retrain-text');
+    btn.disabled = true;
+    txt.innerText = 'Fitting Prophet...';
+
+    fetch('/api/retrain', { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        alert('Prophet model retrained successfully with latest telemetry!');
+        loadForecastPreview(horizonSelect.value);
+      })
+      .catch(e => alert('Error retraining model: ' + e))
+      .finally(() => {
+        btn.disabled = false;
+        txt.innerText = 'Retrain Model';
+      });
+  });
 
   document.getElementById('btn-global-refresh')?.addEventListener('click', () => {
     loadDashboardData();
@@ -206,28 +359,31 @@ function loadDashboardData() {
         document.getElementById('val-temp').innerText = Math.round(d.avg_temperature_C);
         document.getElementById('val-occ').innerText = Math.round(d.avg_occupancy_ratio * 100);
         document.getElementById('val-anomalies').innerText = d.anomaly_count;
-        document.getElementById('val-savings').innerText = '₹' + (d.potential_monthly_savings ? Math.round(d.potential_monthly_savings).toLocaleString() : '420');
+        document.getElementById('val-savings').innerText = '₹' + (d.potential_monthly_savings ? Math.round(d.potential_monthly_savings).toLocaleString() : '3,435');
       }
     })
     .catch(e => console.error('Summary fetch error:', e));
 
-  // 2. Fetch Primary Prophet Forecast Plot
-  loadForecastPreview();
+  // 2. Fetch Primary Prophet Forecast Plot & Stream Table
+  const horizon = document.getElementById('select-horizon')?.value || 24;
+  loadForecastPreview(horizon);
 
   // 3. Fetch Secondary Historical Consumption Chart
   loadConsumptionChart(currentPeriod);
 }
 
-function loadForecastPreview() {
-  fetch('/api/forecast?horizon=24')
+function loadForecastPreview(horizon = 24) {
+  fetch(`/api/forecast?horizon=${horizon}`)
     .then(r => r.json())
     .then(res => {
       if (res.status === 'success') {
+        currentForecastData = res.data;
         const d = res.data;
-        const preds = d.predictions || [];
+        allPredictions = d.predictions || [];
         const meta = d.metadata || {};
         const actuals = d.historical_test_actuals || [];
 
+        // 1. Populate Model Benchmarks
         if (meta.prophet_metrics) {
           document.getElementById('val-prophet-mape').innerText = meta.prophet_metrics.MAPE + '%';
         }
@@ -235,87 +391,192 @@ function loadForecastPreview() {
           document.getElementById('val-baseline-mape').innerText = meta.baseline_metrics.MAPE + '%';
         }
         if (meta.mape_improvement_vs_baseline !== undefined) {
-          document.getElementById('val-mape-diff').innerText = '-' + meta.mape_improvement_vs_baseline + '%';
+          document.getElementById('val-mape-diff').innerText = '+' + meta.mape_improvement_vs_baseline + '%';
         }
 
-        const histX = actuals.map(a => a.Timestamp);
-        const histY = actuals.map(a => a.Actual_kWh);
+        // 2. Compute Horizon Aggregation Stats
+        if (allPredictions.length > 0) {
+          const totalKwh = allPredictions.reduce((acc, p) => acc + p.Forecast_kWh, 0);
+          const avgKwh = totalKwh / allPredictions.length;
+          const peakKwh = Math.max(...allPredictions.map(p => p.Forecast_kWh));
+          const minKwh = Math.min(...allPredictions.map(p => p.Forecast_kWh));
 
-        const allX = [...actuals.map(a => a.Timestamp), ...preds.map(p => p.Timestamp)];
-        const allY = [...actuals.map(a => a.Prophet_Fitted_kWh !== undefined ? a.Prophet_Fitted_kWh : a.Actual_kWh), ...preds.map(p => p.Forecast_kWh)];
-        const allLower = [...actuals.map(a => a.yhat_lower !== undefined ? a.yhat_lower : a.Actual_kWh), ...preds.map(p => p.yhat_lower)];
-        const allUpper = [...actuals.map(a => a.yhat_upper !== undefined ? a.yhat_upper : a.Actual_kWh), ...preds.map(p => p.yhat_upper)];
+          document.getElementById('stat-total-kwh').innerText = totalKwh.toFixed(1) + ' kWh';
+          document.getElementById('stat-avg-kwh').innerText = avgKwh.toFixed(2) + ' kWh/h';
+          document.getElementById('stat-peak-kwh').innerText = peakKwh.toFixed(2) + ' kWh';
+          document.getElementById('stat-min-kwh').innerText = minKwh.toFixed(2) + ' kWh';
+        }
 
-        const traceUpper = {
-          x: allX, y: allUpper, type: 'scatter', mode: 'lines',
-          line: { color: 'transparent' }, showlegend: false, hoverinfo: 'skip'
-        };
+        // 3. Render Prophet Forecast Plot
+        renderProphetPlot(actuals, allPredictions);
 
-        const traceLower = {
-          x: allX, y: allLower, type: 'scatter', mode: 'lines',
-          fill: 'tonexty', fillcolor: 'rgba(227, 239, 38, 0.15)',
-          line: { color: 'transparent' }, name: '95% Confidence Interval'
-        };
-
-        const traceHist = {
-          x: histX, y: histY, name: 'Recent Actuals', type: 'scatter', mode: 'lines',
-          line: { color: '#E2FBCE', width: 2.2 }
-        };
-
-        const traceProphet = {
-          x: allX, y: allY, name: 'Prophet Demand (yhat)', type: 'scatter', mode: 'lines+markers',
-          line: { color: '#E3EF26', width: 2.6 },
-          marker: { size: 3.5, color: '#E3EF26' }
-        };
-
-        const splitTimestamp = actuals.length > 0 ? actuals[actuals.length - 1].Timestamp : null;
-
-        const layout = {
-          autosize: true,
-          paper_bgcolor: 'transparent',
-          plot_bgcolor: 'transparent',
-          margin: { l: 35, r: 25, t: 20, b: 35 },
-          font: { color: 'rgba(255, 253, 238, 0.75)', family: 'Gilroy-Regular, Sora, sans-serif', size: 11 },
-          xaxis: {
-            gridcolor: 'rgba(255, 255, 255, 0.05)',
-            zerolinecolor: 'rgba(255, 255, 255, 0.1)',
-            tickfont: { color: 'rgba(255, 253, 238, 0.65)' }
-          },
-          yaxis: {
-            title: 'Energy (kWh)',
-            gridcolor: 'rgba(255, 255, 255, 0.05)',
-            zerolinecolor: 'rgba(255, 255, 255, 0.1)',
-            tickfont: { color: 'rgba(255, 253, 238, 0.65)' }
-          },
-          legend: { orientation: 'h', y: 1.15, font: { size: 10 } },
-          shapes: splitTimestamp ? [
-            {
-              type: 'line',
-              x0: splitTimestamp,
-              x1: splitTimestamp,
-              y0: 0,
-              y1: 1,
-              yref: 'paper',
-              line: { color: 'rgba(255, 255, 255, 0.35)', width: 1.5, dash: 'dot' }
-            }
-          ] : [],
-          annotations: splitTimestamp ? [
-            {
-              x: splitTimestamp,
-              y: 1.03,
-              yref: 'paper',
-              text: 'Now',
-              showarrow: false,
-              font: { color: '#E3EF26', size: 10 },
-              xanchor: 'center'
-            }
-          ] : []
-        };
-
-        Plotly.newPlot('chart-forecast-preview', [traceUpper, traceLower, traceHist, traceProphet], layout, { responsive: true, displayModeBar: false });
+        // 4. Render Hourly Predictions Stream Table
+        renderPredictionsTable(allPredictions);
       }
     })
     .catch(e => console.error('Forecast load error:', e));
+}
+
+function renderProphetPlot(actuals, preds) {
+  const histX = actuals.map(a => a.Timestamp);
+  const histY = actuals.map(a => a.Actual_kWh);
+
+  const allX = [...actuals.map(a => a.Timestamp), ...preds.map(p => p.Timestamp)];
+  const allY = [...actuals.map(a => a.Prophet_Fitted_kWh !== undefined ? a.Prophet_Fitted_kWh : a.Actual_kWh), ...preds.map(p => p.Forecast_kWh)];
+  const allLower = [...actuals.map(a => a.yhat_lower !== undefined ? a.yhat_lower : a.Actual_kWh), ...preds.map(p => p.yhat_lower)];
+  const allUpper = [...actuals.map(a => a.yhat_upper !== undefined ? a.yhat_upper : a.Actual_kWh), ...preds.map(p => p.yhat_upper)];
+
+  const traceUpper = {
+    x: allX, y: allUpper, type: 'scatter', mode: 'lines',
+    line: { color: 'transparent' }, showlegend: false, hoverinfo: 'skip'
+  };
+
+  const traceLower = {
+    x: allX, y: allLower, type: 'scatter', mode: 'lines',
+    fill: 'tonexty', fillcolor: 'rgba(227, 239, 38, 0.15)',
+    line: { color: 'transparent' }, name: '95% Confidence Interval'
+  };
+
+  const traceHist = {
+    x: histX, y: histY, name: 'Recent Actuals', type: 'scatter', mode: 'lines',
+    line: { color: '#E2FBCE', width: 2.2 }
+  };
+
+  const traceProphet = {
+    x: allX, y: allY, name: 'Prophet Demand (yhat)', type: 'scatter', mode: 'lines+markers',
+    line: { color: '#E3EF26', width: 2.6 },
+    marker: { size: 3.5, color: '#E3EF26' }
+  };
+
+  const splitTimestamp = actuals.length > 0 ? actuals[actuals.length - 1].Timestamp : null;
+
+  const layout = {
+    autosize: true,
+    paper_bgcolor: 'transparent',
+    plot_bgcolor: 'transparent',
+    margin: { l: 40, r: 25, t: 20, b: 35 },
+    font: { color: '#FFF8D2', family: 'Sora, sans-serif', size: 11 },
+    xaxis: {
+      gridcolor: 'rgba(255, 255, 255, 0.05)',
+      zerolinecolor: 'rgba(255, 255, 255, 0.1)',
+      tickfont: { color: '#FFF8D2' }
+    },
+    yaxis: {
+      title: 'Energy (kWh)',
+      gridcolor: 'rgba(255, 255, 255, 0.05)',
+      zerolinecolor: 'rgba(255, 255, 255, 0.1)',
+      tickfont: { color: '#FFF8D2' }
+    },
+    legend: { orientation: 'h', y: 1.12, font: { size: 10 } },
+    shapes: splitTimestamp ? [
+      {
+        type: 'line',
+        x0: splitTimestamp,
+        x1: splitTimestamp,
+        y0: 0,
+        y1: 1,
+        yref: 'paper',
+        line: { color: 'rgba(255, 255, 255, 0.35)', width: 1.5, dash: 'dot' }
+      }
+    ] : [],
+    annotations: splitTimestamp ? [
+      {
+        x: splitTimestamp,
+        y: 1.03,
+        yref: 'paper',
+        text: 'Now',
+        showarrow: false,
+        font: { color: '#E3EF26', size: 10 },
+        xanchor: 'center'
+      }
+    ] : []
+  };
+
+  Plotly.newPlot('chart-forecast-preview', [traceUpper, traceLower, traceHist, traceProphet], layout, { responsive: true, displayModeBar: false });
+}
+
+function renderPredictionsTable(preds) {
+  const tbody = document.getElementById('tbody-forecast');
+  if (!preds || preds.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="py-8 text-center text-on-surface-variant opacity-60">No predictions available</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = preds.map((p, idx) => {
+    const range = (p.yhat_upper - p.yhat_lower).toFixed(2);
+    const occBadge = p.Occupancy_Level === 'High'
+      ? 'bg-error/20 text-error border border-error/30'
+      : (p.Occupancy_Level === 'Low'
+          ? 'bg-primary/20 text-primary border border-primary/30'
+          : 'bg-[#fbbf24]/20 text-[#fbbf24] border border-[#fbbf24]/30');
+
+    return `
+      <tr class="hover:bg-white/5 transition-colors">
+        <td class="py-3 px-4 font-label-sm text-on-surface-variant opacity-60">${idx + 1}</td>
+        <td class="py-3 px-4 font-label-md text-[#FFF8D2] font-semibold">${p.Timestamp}</td>
+        <td class="py-3 px-4 text-primary font-bold text-base">${p.Forecast_kWh} kWh</td>
+        <td class="py-3 px-4 font-label-sm text-on-surface-variant">
+          <span class="text-secondary font-semibold">${p.yhat_lower}</span>
+          <span class="opacity-50 mx-1">to</span>
+          <span class="text-primary font-semibold">${p.yhat_upper} kWh</span>
+        </td>
+        <td class="py-3 px-4">
+          <span class="px-2 py-0.5 rounded text-xs bg-white/5 text-on-surface-variant border border-white/10 font-mono">
+            ± ${(range / 2).toFixed(2)} kWh
+          </span>
+        </td>
+        <td class="py-3 px-4 text-[#fbbf24] font-medium">
+          <span class="material-symbols-outlined text-xs align-middle text-[#fbbf24] mr-0.5">thermostat</span>
+          ${p.Temperature_C !== undefined ? p.Temperature_C + '°C' : '—'}
+        </td>
+        <td class="py-3 px-4">
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${occBadge}">${p.Occupancy_Level || 'Medium'}</span>
+        </td>
+        <td class="py-3 px-4 font-label-sm text-on-surface-variant">
+          ${p.Daily_Seasonality ? (p.Daily_Seasonality > 0 ? '+' : '') + p.Daily_Seasonality.toFixed(2) + ' kWh' : '—'}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterTable(query) {
+  if (!query || !query.trim()) {
+    renderPredictionsTable(allPredictions);
+    return;
+  }
+  const q = query.toLowerCase().trim();
+  const filtered = allPredictions.filter(p => {
+    return p.Timestamp.toLowerCase().includes(q) ||
+           (p.Occupancy_Level && p.Occupancy_Level.toLowerCase().includes(q)) ||
+           String(p.Forecast_kWh).includes(q);
+  });
+  renderPredictionsTable(filtered);
+}
+
+function exportToCsv() {
+  if (!allPredictions || allPredictions.length === 0) {
+    alert('No forecast data loaded to export.');
+    return;
+  }
+  const headers = ['Timestamp', 'Forecast_kWh', 'yhat_lower', 'yhat_upper', 'Temperature_C', 'Occupancy_Level', 'Daily_Seasonality'];
+  const rows = allPredictions.map(p => [
+    p.Timestamp,
+    p.Forecast_kWh,
+    p.yhat_lower,
+    p.yhat_upper,
+    p.Temperature_C || '',
+    p.Occupancy_Level || 'Medium',
+    p.Daily_Seasonality || 0
+  ]);
+  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `prophet_dashboard_forecast_${document.getElementById('select-horizon').value}h.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function changePeriod(period) {
@@ -374,18 +635,18 @@ function loadConsumptionChart(period) {
           autosize: true,
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
-          margin: { l: 30, r: 30, t: 10, b: 30 },
-          font: { color: 'rgba(255, 253, 238, 0.70)', family: 'Gilroy-Regular, Sora, sans-serif', size: 11 },
+          margin: { l: 35, r: 35, t: 10, b: 30 },
+          font: { color: '#FFF8D2', family: 'Sora, sans-serif', size: 11 },
           xaxis: {
             gridcolor: 'rgba(255, 255, 255, 0.05)',
             zerolinecolor: 'rgba(255, 255, 255, 0.1)',
-            tickfont: { color: 'rgba(255, 253, 238, 0.65)' }
+            tickfont: { color: '#FFF8D2' }
           },
           yaxis: {
             title: 'kWh',
             gridcolor: 'rgba(255, 255, 255, 0.05)',
             zerolinecolor: 'rgba(255, 255, 255, 0.1)',
-            tickfont: { color: 'rgba(255, 253, 238, 0.65)' }
+            tickfont: { color: '#FFF8D2' }
           },
           yaxis2: {
             overlaying: 'y',
