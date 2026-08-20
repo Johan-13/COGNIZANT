@@ -50,22 +50,27 @@ An enterprise-grade, full-stack Data Science and Machine Learning Web Applicatio
 ## 🖥️ Page Layout & UI Architecture
 
 ### 📊 1. Overview Dashboard (`/dashboard`)
-- **Top Main Centerpiece:** Full-width **Prophet Predicted Energy Demand & 95% Confidence Bounds** chart with continuous historical cyan curve, purple Prophet model fit, 95% shaded confidence ribbon, and vertical *"Now / Forecast Start"* marker.
-- **Bottom Section:** Compact **Historical Energy Consumption & Telemetry** (height: 260px) with interactive time-aggregation buttons (Daily 90d / Hourly Recent / Weekly) and optional live telemetry watcher.
-- **Metric Cards:** Real-time summary cards for Total Consumption, Daily Average, Temperature, Occupancy, Anomalies Count, and Monthly Potential Savings in **₹ INR**.
+- **Top Metric Cards:** 6 KPI cards for Total Consumption, Daily Average, Temperature, Occupancy, Anomalies Count, and Monthly Potential Savings in **₹ INR**.
+- **First Main Centerpiece:** Full-width **Prophet Predicted Energy Demand & 95% Confidence Bounds** chart with continuous historical curve, Prophet model fit, 95% shaded confidence ribbon, vertical *"Now"* marker, and model evaluation MAPE benchmarks.
+- **Forecast Horizon Key Metrics & Summary:** 4 Stat cards (Total Horizon Demand, Average Hourly Rate, Peak Forecast Demand, and Min Off-Peak Demand).
+- **Active Hourly Predictions Stream Table:** Interactive horizon switcher (24h, 48h, 72h, 168h), CSV export, model retraining, and live search/filter by timestamp, hour, or occupancy tier.
+- **Historical Energy Consumption & Telemetry:** Compact 240px dual-axis plot with Daily/Hourly/Weekly period toggles.
+- **Live Real-Time Stream Status Strip:** Background 1:1 streaming engine indicator.
 
-### 📋 2. Hourly Predictions Stream (`/forecast`)
-- **Top Summary Aggregations:** **Forecast Horizon Key Metrics & Summary** cards (Total Horizon Demand, Average Hourly Rate, Peak Forecast Demand, and Min Off-Peak Demand).
-- **Interactive Horizon Switcher:** Next 24 Hours, Next 48 Hours, Next 72 Hours, Next 7 Days (168h).
-- **Search & Filter:** Instant table query filtering by timestamp, hour, or occupancy tier.
-- **CSV Data Export:** One-click CSV download of active stream predictions with exogenous regressors.
-- **Model Evaluation:** Prophet vs. Naive Baseline MAPE, RMSE, and improvement percentage.
+### 🚨 2. Anomaly Detection Engine (`/anomalies`)
+- Rolling Z-score anomaly tracking with configurable sensitivity thresholds (2.0, 2.5, 3.0).
+- Flagged energy spikes table sorted in reverse chronological order (newest detections first).
 
-### 💰 3. Cost & Savings Optimization Engine (`/savings`)
-- Displays active Indian Slab Tariff rate cards.
-- Compares Actual Monthly Cost vs. Predicted Monthly Cost and variance in **₹ INR**.
-- Itemized breakdown table for each optimization strategy.
-- Target reduction scenario matrices (5% to 25% targets) calculated at progressive slab rates.
+### ⚡ 3. Peak Load Analysis & Load Shifting (`/peaks`)
+- Diurnal peak window classification (Morning Peak, Evening Peak, Overnight Baseload).
+- Top Peak Consumption Hours ranking and automated Flexible Appliance Rescheduling Dispatch matrix with ₹ savings.
+
+### 💡 4. Optimization Recommendations (`/recommendations`)
+- 4 structured high-impact energy optimization strategies spanning Peak Load Shifting, Thermal Pre-Cooling, Occupancy Setbacks, and Standby Vampire Load Reduction.
+
+### 💰 5. Cost & Savings Optimization Engine (`/savings`)
+- Indian Slab Tariff rate cards with unified >200 units (₹8.50/kWh) tier.
+- Interactive What-If Reduction Simulator projecting progressive monthly rupee savings.
 
 ---
 

@@ -103,9 +103,10 @@ async def dashboard(request: Request):
     return templates.TemplateResponse(request=request, name="dashboard.html", context={"active_page": "dashboard"})
 
 
-@app.get("/forecast", response_class=HTMLResponse)
+@app.get("/forecast")
 async def forecast_page(request: Request):
-    return templates.TemplateResponse(request=request, name="forecast.html", context={"active_page": "forecast"})
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/dashboard")
 
 
 @app.get("/anomalies", response_class=HTMLResponse)
