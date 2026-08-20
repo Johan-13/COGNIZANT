@@ -15,7 +15,9 @@ def test_preprocessing_columns():
     assert 'Energy_kWh' in df.columns
     assert 'Temperature_C' in df.columns
     assert 'Humidity_pct' in df.columns
+    assert 'Occupancy_Level' in df.columns
     assert 'Occupancy_Ratio' in df.columns
+    assert set(df['Occupancy_Level'].unique()).issubset({'Low', 'Medium', 'High'})
     assert len(df) > 100
 
 

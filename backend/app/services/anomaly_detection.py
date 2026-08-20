@@ -4,12 +4,14 @@ import numpy as np
 
 def detect_anomalies(df, window=24, z_threshold=2.0):
     """
-    Detects abnormally high energy consumption using rolling Z-Score statistics combined with Weather & Occupancy telemetry.
+    Detects abnormally high energy consumption using rolling Z-Score statistics combined with Weather & 3-Tier Occupancy telemetry.
     Returns flagged anomaly events with severity classifications and root-cause diagnoses.
     """
     cols = ['Energy_kWh', 'Hour', 'DayOfWeek', 'IsWeekend']
     if 'Temperature_C' in df.columns:
         cols.append('Temperature_C')
+    if 'Occupancy_Level' in df.columns:
+        cols.append('Occupancy_Level')
     if 'Occupancy_Ratio' in df.columns:
         cols.append('Occupancy_Ratio')
         
@@ -43,12 +45,12 @@ def detect_anomalies(df, window=24, z_threshold=2.0):
         expected = row['rolling_mean']
         ratio = actual / max(expected, 0.1)
         temp = row.get('Temperature_C', 20.0)
-        occ = row.get('Occupancy_Ratio', 0.5)
+        occ_level = row.get('Occupancy_Level', 'Medium')
 
-        if occ < 0.25 and actual > expected * 1.4:
-            return f"Wasted Energy Alert: High energy draw ({round(actual, 2)} kWh) during low occupancy ({int(occ*100)}%). Equipment or HVAC left running."
+        if occ_level == 'Low' and actual > expected * 1.3:
+            return f"Wasted Energy Alert: High power draw ({round(actual, 2)} kWh) during Low occupancy period. Equipment or HVAC left running unattended."
         elif temp > 28.0 or temp < 10.0:
-            return f"Extreme Weather Impact: HVAC overload during ambient temperature of {round(temp, 1)}°C."
+            return f"Extreme Weather Impact: HVAC thermal load during ambient temperature of {round(temp, 1)}°C."
         elif hour >= 0 and hour <= 5:
             return "Unusual overnight power surge (unattended appliances or baseload leak)."
         elif row['IsWeekend'] == 1:
@@ -68,9 +70,10 @@ def detect_anomalies(df, window=24, z_threshold=2.0):
     anomalies['Expected_kWh'] = anomalies['rolling_mean'].round(3)
     anomalies['Z_Score'] = anomalies['z_score'].round(2)
     anomalies['Temperature_C'] = anomalies.get('Temperature_C', 20.0).round(1)
+    anomalies['Occupancy_Level'] = anomalies.get('Occupancy_Level', 'Medium')
     anomalies['Occupancy_Ratio'] = anomalies.get('Occupancy_Ratio', 0.5).round(2)
 
-    result_cols = ['Timestamp', 'Actual_kWh', 'Expected_kWh', 'Z_Score', 'Severity', 'Temperature_C', 'Occupancy_Ratio', 'Possible_Reason']
+    result_cols = ['Timestamp', 'Actual_kWh', 'Expected_kWh', 'Z_Score', 'Severity', 'Temperature_C', 'Occupancy_Level', 'Occupancy_Ratio', 'Possible_Reason']
     
     summary = {
         'total_anomalies': len(anomalies),

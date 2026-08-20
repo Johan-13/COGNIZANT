@@ -26,20 +26,25 @@ def generate_recommendations(df, anomalies_summary=None, peak_info=None):
         })
 
     # Rule 2: Low Occupancy Power Waste
-    if 'Occupancy_Ratio' in df.columns:
+    if 'Occupancy_Level' in df.columns:
+        low_occ_df = df[df['Occupancy_Level'] == 'Low']
+    elif 'Occupancy_Ratio' in df.columns:
         low_occ_df = df[df['Occupancy_Ratio'] < 0.3]
-        if len(low_occ_df) > 0:
-            unattended_draw = float(low_occ_df['Energy_kWh'].mean())
-            if unattended_draw > overall_avg * 0.6:
-                recommendations.append({
-                    'id': 'rec_occupancy_waste',
-                    'category': 'Occupancy Automation',
-                    'title': 'Automate HVAC and Lighting Shutdown During Unoccupied Hours',
-                    'description': f"Average energy draw during low occupancy (<30% capacity) is {round(unattended_draw, 2)} kWh/hr. Automated occupancy sensors can eliminate unneeded cooling/lighting.",
-                    'potential_impact': 'High',
-                    'estimated_kwh_saving_monthly': round(unattended_draw * 0.4 * 8 * 30, 1),
-                    'actionable_step': 'Install PIR motion sensors and smart thermostat occupancy setback schedules.'
-                })
+    else:
+        low_occ_df = pd.DataFrame()
+
+    if len(low_occ_df) > 0:
+        unattended_draw = float(low_occ_df['Energy_kWh'].mean())
+        if unattended_draw > overall_avg * 0.6:
+            recommendations.append({
+                'id': 'rec_occupancy_waste',
+                'category': 'Occupancy Automation',
+                'title': 'Automate HVAC and Lighting Shutdown During Low Occupancy Hours',
+                'description': f"Average energy draw during Low Occupancy periods is {round(unattended_draw, 2)} kWh/hr. Automated occupancy sensors can eliminate unneeded cooling/lighting.",
+                'potential_impact': 'High',
+                'estimated_kwh_saving_monthly': round(unattended_draw * 0.4 * 8 * 30, 1),
+                'actionable_step': 'Install PIR motion sensors and smart thermostat occupancy setback schedules.'
+            })
 
     # Rule 3: Overnight Standby/Vampire Draw (01:00 - 05:00)
     night_load = hourly_avg[(hourly_avg.index >= 1) & (hourly_avg.index <= 5)].mean()

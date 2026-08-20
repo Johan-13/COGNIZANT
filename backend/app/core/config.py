@@ -47,6 +47,7 @@ MODELS_DIR = _resolve_models_dir()
 RAW_DATA_PATH = str(DATA_DIR / "household_power_consumption.txt")
 SAMPLE_DATA_PATH = str(DATA_DIR / "sample_power_consumption.txt")
 PROCESSED_DATA_PATH = str(DATA_DIR / "processed_power_consumption.csv")
+WEATHER_CACHE_PATH = str(DATA_DIR / "weather_cache.csv")
 
 # Model File Paths
 PROPHET_MODEL_PATH = str(MODELS_DIR / "prophet_model.pkl")

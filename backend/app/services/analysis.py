@@ -4,7 +4,7 @@ import numpy as np
 
 def get_summary_metrics(df):
     """
-    Computes overall key metrics for the dataset including energy, weather, and occupancy.
+    Computes overall key metrics for the dataset including energy, real weather, and 3-tier occupancy.
     """
     total_kWh = float(df['Energy_kWh'].sum())
     avg_hourly_kWh = float(df['Energy_kWh'].mean())
@@ -20,11 +20,22 @@ def get_summary_metrics(df):
     # Weather & Occupancy summary metrics
     avg_temp = float(df['Temperature_C'].mean()) if 'Temperature_C' in df.columns else 20.0
     avg_humidity = float(df['Humidity_pct'].mean()) if 'Humidity_pct' in df.columns else 55.0
-    avg_occupancy = float(df['Occupancy_Ratio'].mean()) if 'Occupancy_Ratio' in df.columns else 0.5
+    avg_occupancy = float(df['Occupancy_Score'].mean()) if 'Occupancy_Score' in df.columns else (
+        float(df['Occupancy_Ratio'].mean()) if 'Occupancy_Ratio' in df.columns else 0.5
+    )
+
+    # 3-tier Occupancy counts
+    occ_counts = {'Low': 0, 'Medium': 0, 'High': 0}
+    if 'Occupancy_Level' in df.columns:
+        counts = df['Occupancy_Level'].value_counts().to_dict()
+        for k, v in counts.items():
+            if k in occ_counts:
+                occ_counts[k] = int(v)
 
     # Correlations
     temp_corr = float(df['Energy_kWh'].corr(df['Temperature_C'])) if 'Temperature_C' in df.columns else 0.0
-    occ_corr = float(df['Energy_kWh'].corr(df['Occupancy_Ratio'])) if 'Occupancy_Ratio' in df.columns else 0.0
+    occ_score_col = 'Occupancy_Score' if 'Occupancy_Score' in df.columns else ('Occupancy_Ratio' if 'Occupancy_Ratio' in df.columns else None)
+    occ_corr = float(df['Energy_kWh'].corr(df[occ_score_col])) if occ_score_col and occ_score_col in df.columns else 0.0
 
     return {
         'total_consumption_kWh': round(total_kWh, 2),
@@ -40,6 +51,7 @@ def get_summary_metrics(df):
         'avg_temperature_C': round(avg_temp, 1),
         'avg_humidity_pct': round(avg_humidity, 1),
         'avg_occupancy_ratio': round(avg_occupancy, 2),
+        'occupancy_counts': occ_counts,
         'temp_energy_correlation': round(temp_corr, 3),
         'occupancy_energy_correlation': round(occ_corr, 3)
     }
@@ -52,10 +64,18 @@ def get_hourly_profile(df):
     cols = {'Energy_kWh': 'mean'}
     if 'Temperature_C' in df.columns:
         cols['Temperature_C'] = 'mean'
-    if 'Occupancy_Ratio' in df.columns:
+    if 'Occupancy_Score' in df.columns:
+        cols['Occupancy_Score'] = 'mean'
+    elif 'Occupancy_Ratio' in df.columns:
         cols['Occupancy_Ratio'] = 'mean'
         
     hourly_avg = df.groupby('Hour').agg(cols).reset_index().round(3)
+    
+    # Add dominant Occupancy_Level per hour
+    if 'Occupancy_Level' in df.columns:
+        mode_occ = df.groupby('Hour')['Occupancy_Level'].agg(lambda x: x.mode()[0] if not x.empty else 'Medium').reset_index()
+        hourly_avg['Occupancy_Level'] = mode_occ['Occupancy_Level']
+        
     return hourly_avg.to_dict(orient='records')
 
 
@@ -82,7 +102,7 @@ def get_monthly_profile(df):
 
 def get_consumption_time_series(df, period='daily', limit=90):
     """
-    Returns time series data aggregated by daily, weekly, or hourly for charts with weather & occupancy context.
+    Returns time series data aggregated by daily, weekly, or hourly for charts with real weather & 3-tier occupancy context.
     """
     if period == 'hourly':
         sub = df.tail(limit * 24 if limit else len(df)).copy()
@@ -90,30 +110,34 @@ def get_consumption_time_series(df, period='daily', limit=90):
         res_cols = ['Timestamp', 'Energy_kWh']
         if 'Temperature_C' in sub.columns:
             res_cols.append('Temperature_C')
-        if 'Occupancy_Ratio' in sub.columns:
+        if 'Occupancy_Level' in sub.columns:
+            res_cols.append('Occupancy_Level')
+        if 'Occupancy_Score' in sub.columns:
+            res_cols.append('Occupancy_Score')
+        elif 'Occupancy_Ratio' in sub.columns:
             res_cols.append('Occupancy_Ratio')
         return sub[res_cols].to_dict(orient='records')
     elif period == 'weekly':
         sub = df.resample('W').agg({
             'Energy_kWh': 'sum',
             'Temperature_C': 'mean',
-            'Occupancy_Ratio': 'mean'
+            'Occupancy_Score': 'mean' if 'Occupancy_Score' in df.columns else 'first'
         }).reset_index()
         sub = sub.tail(limit if limit else len(sub))
         sub['Timestamp'] = sub['Datetime'].dt.strftime('%Y-%W')
         sub['Energy_kWh'] = sub['Energy_kWh'].round(2)
         sub['Temperature_C'] = sub['Temperature_C'].round(1)
-        sub['Occupancy_Ratio'] = sub['Occupancy_Ratio'].round(2)
-        return sub[['Timestamp', 'Energy_kWh', 'Temperature_C', 'Occupancy_Ratio']].to_dict(orient='records')
+        sub['Occupancy_Score'] = sub['Occupancy_Score'].round(2) if 'Occupancy_Score' in sub.columns else 0.5
+        return sub.to_dict(orient='records')
     else:  # daily default
         sub = df.resample('D').agg({
             'Energy_kWh': 'sum',
             'Temperature_C': 'mean',
-            'Occupancy_Ratio': 'mean'
+            'Occupancy_Score': 'mean' if 'Occupancy_Score' in df.columns else 'first'
         }).reset_index()
         sub = sub.tail(limit if limit else len(sub))
         sub['Timestamp'] = sub['Datetime'].dt.strftime('%Y-%m-%d')
         sub['Energy_kWh'] = sub['Energy_kWh'].round(2)
         sub['Temperature_C'] = sub['Temperature_C'].round(1)
-        sub['Occupancy_Ratio'] = sub['Occupancy_Ratio'].round(2)
-        return sub[['Timestamp', 'Energy_kWh', 'Temperature_C', 'Occupancy_Ratio']].to_dict(orient='records')
+        sub['Occupancy_Score'] = sub['Occupancy_Score'].round(2) if 'Occupancy_Score' in sub.columns else 0.5
+        return sub.to_dict(orient='records')

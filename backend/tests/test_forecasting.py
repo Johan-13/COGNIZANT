@@ -22,7 +22,7 @@ class TestForecasting(unittest.TestCase):
 
     def test_02_forecaster_train_and_predict(self):
         forecaster = EnergyForecaster()
-        meta = forecaster.train(self.df)
+        meta = forecaster.train(self.df, save_model=False)
         self.assertIn('prophet_metrics', meta)
         self.assertIn('baseline_metrics', meta)
         

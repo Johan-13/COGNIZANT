@@ -132,7 +132,7 @@ function loadAnomalies(threshold) {
               <td class="fw-semibold">${a.Z_Score}</td>
               <td><span class="badge ${badgeClass}">${a.Severity}</span></td>
               <td class="text-warning">${a.Temperature_C}°C</td>
-              <td class="text-info">${Math.round(a.Occupancy_Ratio * 100)}%</td>
+              <td><span class="badge ${a.Occupancy_Level === 'High' ? 'badge-high' : (a.Occupancy_Level === 'Low' ? 'badge-low' : 'badge-medium')}">${a.Occupancy_Level || 'Medium'}</span></td>
               <td class="small text-light">${a.Possible_Reason}</td>
             </tr>
           `;

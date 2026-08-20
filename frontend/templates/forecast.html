@@ -203,7 +203,7 @@ function loadForecastData(horizon) {
             <td class="text-muted">${p.yhat_lower}</td>
             <td class="text-muted">${p.yhat_upper}</td>
             <td class="text-warning">${p.Temperature_C}°C</td>
-            <td class="text-info">${Math.round(p.Occupancy_Ratio * 100)}%</td>
+            <td><span class="badge ${p.Occupancy_Level === 'High' ? 'badge-high' : (p.Occupancy_Level === 'Low' ? 'badge-low' : 'badge-medium')}">${p.Occupancy_Level || 'Medium'}</span></td>
           </tr>
         `).join('');
       }
