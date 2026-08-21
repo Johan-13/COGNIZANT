@@ -188,10 +188,14 @@ async def api_forecast(horizon: int = Query(24, ge=1, le=168), retrain: bool = Q
 
 
 @app.get("/api/anomalies")
-async def api_anomalies(threshold: float = Query(2.0, ge=1.0, le=5.0)):
+async def api_anomalies(
+    z_threshold: Optional[float] = Query(None, ge=1.0, le=5.0),
+    threshold: Optional[float] = Query(None, ge=1.0, le=5.0)
+):
     try:
+        chosen_thresh = z_threshold if z_threshold is not None else (threshold if threshold is not None else 2.0)
         df = load_dataset()
-        res = detect_anomalies(df, z_threshold=threshold)
+        res = detect_anomalies(df, z_threshold=chosen_thresh)
         return {"status": "success", "data": res}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
