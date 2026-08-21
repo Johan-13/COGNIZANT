@@ -2,7 +2,14 @@ import asyncio
 import os
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+IST_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
+
+def get_current_time() -> pd.Timestamp:
+    """Returns current real-world timestamp in Indian Standard Time (IST, UTC+5:30) as naive timestamp floored to current hour."""
+    now_ist = datetime.now(IST_TIMEZONE).replace(tzinfo=None)
+    return pd.Timestamp(now_ist).floor('h')
 
 try:
     from backend.app.core.config import PROCESSED_DATA_PATH, DATA_DIR
@@ -142,9 +149,9 @@ class LiveDataStreamer:
 
     def catch_up_to_now(self, df_current: pd.DataFrame) -> tuple[pd.DataFrame, int]:
         """
-        Fills any hourly gap between the last timestamp in df_current and the current real-world hour (pd.Timestamp.now().floor('h')).
+        Fills any hourly gap between the last timestamp in df_current and the current real-world hour (IST).
         """
-        now = pd.Timestamp.now().floor('h')
+        now = get_current_time()
         if df_current.empty:
             return df_current, 0
 
@@ -158,7 +165,7 @@ class LiveDataStreamer:
         if added > 0:
             try:
                 df_current.to_csv(PROCESSED_DATA_PATH)
-                print(f"[LiveDataStreamer] Synchronized {added} missing hourly records up to {now}.")
+                print(f"[LiveDataStreamer] Synchronized {added} missing hourly records up to {now} (IST).")
             except Exception as e:
                 print(f"[LiveDataStreamer] Note: could not save backfilled CSV: {e}")
         return df_current, added

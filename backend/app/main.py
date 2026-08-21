@@ -28,9 +28,11 @@ def load_dataset(force_reload: bool = False):
     global _DATA_CACHE
     if _DATA_CACHE is None or force_reload:
         _DATA_CACHE = get_processed_data(force_reprocess=force_reload)
-        _DATA_CACHE, count = streamer_engine.catch_up_to_now(_DATA_CACHE)
-        if count > 0:
-            print(f"[LiveStream] Backfilled {count} hourly records up to current hour.")
+    
+    # Always ensure in-memory cache is synchronized up to the current real-world IST hour
+    _DATA_CACHE, count = streamer_engine.catch_up_to_now(_DATA_CACHE)
+    if count > 0:
+        print(f"[LiveStream] Backfilled {count} hourly records up to current hour (IST).")
     return _DATA_CACHE
 
 
